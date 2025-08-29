@@ -14,7 +14,7 @@ const AddServiceForm = ({ onSubmit, onCancel }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
-    
+
     if (form.checkValidity() === false) {
       event.stopPropagation();
       setValidated(true);
@@ -22,14 +22,14 @@ const AddServiceForm = ({ onSubmit, onCancel }) => {
     }
 
     setIsSubmitting(true);
-    
+
     try {
       await onSubmit({
         name: formData.name,
         address: formData.address,
         port: formData.port ? parseInt(formData.port) : null
       });
-      
+
       // Reset form
       setFormData({ name: '', address: '', port: '' });
       setValidated(false);
@@ -104,7 +104,7 @@ const AddServiceForm = ({ onSubmit, onCancel }) => {
           </Form.Group>
 
           <div className="d-flex gap-2 mb-4">
-            <Button 
+            <Button
               variant="primary"
               type="submit"
               size="lg"
@@ -113,10 +113,10 @@ const AddServiceForm = ({ onSubmit, onCancel }) => {
               {isSubmitting ? (
                 <>Loading...</>
               ) : (
-                <><Plus className="me-2" />Add Service</>
+                <><Plus className="me-2" />Добавить</>
               )}
             </Button>
-            <Button 
+            <Button
               variant="outline-secondary"
               size="lg"
               onClick={onCancel}

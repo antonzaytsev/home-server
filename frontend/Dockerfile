@@ -2,20 +2,15 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
 
 # Install serve for static file serving
 RUN npm install -g serve
 
-# Copy app source
+# Copy app source and build
 COPY . .
-
-# Build the app
+ARG API_URL
+ENV API_URL=$API_URL
 RUN npm run build
-
-EXPOSE 80
-
-# Serve the built app on port 80
-CMD ["serve", "-s", "build", "-l", "80"]

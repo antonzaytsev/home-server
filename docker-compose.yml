@@ -16,7 +16,12 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        API_URL: ${API_URL:-http://localhost:4567/api}
     container_name: home-server-frontend
+    command: ["serve", "-s", "build", "-l", "80"]
+    environment:
+      - NODE_ENV=production
     depends_on:
       - backend
     ports:

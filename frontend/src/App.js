@@ -9,7 +9,7 @@ import AddServiceForm from './components/AddServiceForm';
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 
-const API_BASE_URL = 'http://localhost:4567/api';
+const API_BASE_URL = process.env.API_URL || 'http://localhost:4567/api';
 
 function App() {
   const [services, setServices] = useState([]);
@@ -122,9 +122,9 @@ function App() {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ 
-        backgroundColor: '#fff', 
-        borderBottom: '1px solid #f0f0f0', 
+      <Header style={{
+        backgroundColor: '#fff',
+        borderBottom: '1px solid #f0f0f0',
         padding: '0 24px',
         height: 'auto',
         paddingTop: '24px',
@@ -139,8 +139,8 @@ function App() {
               Your network services at a glance
             </Text>
           </div>
-          <Badge 
-            count={`${services.length} Service${services.length !== 1 ? 's' : ''}`} 
+          <Badge
+            count={`${services.length} Service${services.length !== 1 ? 's' : ''}`}
             style={{ backgroundColor: '#1890ff' }}
           />
         </div>
@@ -159,7 +159,7 @@ function App() {
         )}
 
         <Space size="middle" style={{ marginBottom: '24px' }}>
-          <Button 
+          <Button
             type={showAddForm ? "default" : "primary"}
             size="large"
             icon={<PlusOutlined />}
@@ -167,8 +167,8 @@ function App() {
           >
             {showAddForm ? 'Cancel' : 'Add Service'}
           </Button>
-          
-          <Button 
+
+          <Button
             size="large"
             icon={<ReloadOutlined />}
             onClick={fetchServices}
@@ -179,7 +179,7 @@ function App() {
 
         {showAddForm && (
           <div style={{ marginBottom: '24px' }}>
-            <AddServiceForm 
+            <AddServiceForm
               onSubmit={handleAddService}
               onCancel={() => setShowAddForm(false)}
             />
@@ -204,7 +204,7 @@ function App() {
             <Text type="secondary" style={{ display: 'block', marginBottom: '24px' }}>
               Get started by adding your first home server service
             </Text>
-            <Button 
+            <Button
               type="primary"
               size="large"
               icon={<PlusOutlined />}

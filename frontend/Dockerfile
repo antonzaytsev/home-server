@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:24.7-bookworm
 
 WORKDIR /app
 
@@ -6,11 +6,10 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
-# Install serve for static file serving
-RUN npm install -g serve
+#COPY . .
 
-# Copy app source and build
-COPY . .
-ARG API_URL
-ENV API_URL=$API_URL
-RUN npm run build
+#ARG API_URL
+#ENV API_URL=$API_URL
+
+# Default command for development (can be overridden)
+#CMD ["npm", "start"]

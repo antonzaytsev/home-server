@@ -18,14 +18,17 @@ services:
       dockerfile: Dockerfile
       args:
         API_URL: ${API_URL:-http://localhost:4567/api}
-    container_name: home-server-frontend
-    command: ["serve", "-s", "build", "-l", "80"]
+    command: /bin/bash -c 'npm start'
+    volumes:
+      - ./frontend:/app
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
     depends_on:
       - backend
     ports:
-      - "80:80"
+      - "80:3000"
     restart: unless-stopped
 
 volumes:

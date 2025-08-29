@@ -119,9 +119,27 @@ function App() {
     <div style={{ minHeight: '100vh' }}>
       <header className="bg-white border-bottom py-4">
         <Container>
-          <h1 className="mb-2">
-            <House className="me-2" /> Сервисы
-          </h1>
+          <div className="d-flex justify-content-between align-items-center">
+            <h1 className="mb-0">
+              <House className="me-2" /> Сервисы
+            </h1>
+            <div className="d-flex gap-2">
+              <Button
+                variant={showAddForm ? "outline-primary" : "primary"}
+                onClick={() => setShowAddForm(!showAddForm)}
+              >
+                <Plus className="me-2" />
+                {showAddForm ? 'Cancel' : 'Add Service'}
+              </Button>
+              <Button
+                variant="outline-secondary"
+                onClick={fetchServices}
+              >
+                <ArrowRepeat className="me-2" />
+                Refresh
+              </Button>
+            </div>
+          </div>
         </Container>
       </header>
 
@@ -138,26 +156,6 @@ function App() {
               {error}
             </Alert>
           )}
-
-          <div className="d-flex gap-3 mb-4">
-            <Button
-              variant={showAddForm ? "outline-primary" : "primary"}
-              size="lg"
-              onClick={() => setShowAddForm(!showAddForm)}
-            >
-              <Plus className="me-2" />
-              {showAddForm ? 'Cancel' : 'Add Service'}
-            </Button>
-
-            <Button
-              variant="outline-secondary"
-              size="lg"
-              onClick={fetchServices}
-            >
-              <ArrowRepeat className="me-2" />
-              Refresh
-            </Button>
-          </div>
 
           {showAddForm && (
             <div className="mb-4">

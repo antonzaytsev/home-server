@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { DragDropContext } from 'react-beautiful-dnd';
-import { Layout, Button, Spin, Alert, Typography, Badge, Space } from 'antd';
-import { PlusOutlined, ReloadOutlined, HomeOutlined } from '@ant-design/icons';
+import { Container, Row, Col, Button, Spinner, Alert, Badge } from 'react-bootstrap';
+import { Plus, ArrowRepeat, House } from 'react-bootstrap-icons';
 import ServiceList from './components/ServiceList';
 import AddServiceForm from './components/AddServiceForm';
-
-const { Header, Content } = Layout;
-const { Title, Text } = Typography;
 
 const API_BASE_URL = process.env.API_URL || 'http://localhost:4567/api';
 
@@ -109,113 +106,99 @@ function App() {
 
   if (loading) {
     return (
-      <Layout style={{ minHeight: '100vh' }}>
-        <Content style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <Space direction="vertical" align="center">
-            <Spin size="large" />
-            <Text>Loading services...</Text>
-          </Space>
-        </Content>
-      </Layout>
+      <Container fluid className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
+        <div className="text-center">
+          <Spinner animation="border" size="lg" className="mb-3" />
+          <p className="text-muted">Loading services...</p>
+        </div>
+      </Container>
     );
   }
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{
-        backgroundColor: '#fff',
-        borderBottom: '1px solid #f0f0f0',
-        padding: '0 24px',
-        height: 'auto',
-        paddingTop: '24px',
-        paddingBottom: '24px'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <Title level={1} style={{ margin: 0, marginBottom: '8px' }}>
-              <HomeOutlined /> Home Server Gallery
-            </Title>
-            <Text type="secondary" style={{ fontSize: '16px' }}>
-              Your network services at a glance
-            </Text>
-          </div>
-          <Badge
-            count={`${services.length} Service${services.length !== 1 ? 's' : ''}`}
-            style={{ backgroundColor: '#1890ff' }}
-          />
-        </div>
-      </Header>
+    <div style={{ minHeight: '100vh' }}>
+      <header className="bg-white border-bottom py-4">
+        <Container>
+          <h1 className="mb-2">
+            <House className="me-2" /> Сервисы
+          </h1>
+        </Container>
+      </header>
 
-      <Content style={{ padding: '24px' }}>
-        {error && (
-          <Alert
-            message="Error"
-            description={error}
-            type="error"
-            closable
-            onClose={() => setError(null)}
-            style={{ marginBottom: '24px' }}
-          />
-        )}
-
-        <Space size="middle" style={{ marginBottom: '24px' }}>
-          <Button
-            type={showAddForm ? "default" : "primary"}
-            size="large"
-            icon={<PlusOutlined />}
-            onClick={() => setShowAddForm(!showAddForm)}
-          >
-            {showAddForm ? 'Cancel' : 'Add Service'}
-          </Button>
-
-          <Button
-            size="large"
-            icon={<ReloadOutlined />}
-            onClick={fetchServices}
-          >
-            Refresh
-          </Button>
-        </Space>
-
-        {showAddForm && (
-          <div style={{ marginBottom: '24px' }}>
-            <AddServiceForm
-              onSubmit={handleAddService}
-              onCancel={() => setShowAddForm(false)}
-            />
-          </div>
-        )}
-
-        <DragDropContext onDragEnd={handleDragEnd}>
-          <ServiceList
-            services={services}
-            onUpdate={handleUpdateService}
-            onDelete={handleDeleteService}
-            onRefreshHealth={handleRefreshHealth}
-          />
-        </DragDropContext>
-
-        {services.length === 0 && !showAddForm && (
-          <div style={{ textAlign: 'center', padding: '80px 0' }}>
-            <div style={{ fontSize: '48px', marginBottom: '24px' }}>
-              🖥️
-            </div>
-            <Title level={3}>No services yet</Title>
-            <Text type="secondary" style={{ display: 'block', marginBottom: '24px' }}>
-              Get started by adding your first home server service
-            </Text>
-            <Button
-              type="primary"
-              size="large"
-              icon={<PlusOutlined />}
-              onClick={() => setShowAddForm(true)}
+      <main className="p-4">
+        <Container>
+          {error && (
+            <Alert
+              variant="danger"
+              dismissible
+              onClose={() => setError(null)}
+              className="mb-4"
             >
-              Add Your First Service
+              <Alert.Heading>Error</Alert.Heading>
+              {error}
+            </Alert>
+          )}
+
+          <div className="d-flex gap-3 mb-4">
+            <Button
+              variant={showAddForm ? "outline-primary" : "primary"}
+              size="lg"
+              onClick={() => setShowAddForm(!showAddForm)}
+            >
+              <Plus className="me-2" />
+              {showAddForm ? 'Cancel' : 'Add Service'}
+            </Button>
+
+            <Button
+              variant="outline-secondary"
+              size="lg"
+              onClick={fetchServices}
+            >
+              <ArrowRepeat className="me-2" />
+              Refresh
             </Button>
           </div>
-        )}
-      </Content>
-    </Layout>
+
+          {showAddForm && (
+            <div className="mb-4">
+              <AddServiceForm
+                onSubmit={handleAddService}
+                onCancel={() => setShowAddForm(false)}
+              />
+            </div>
+          )}
+
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <ServiceList
+              services={services}
+              onUpdate={handleUpdateService}
+              onDelete={handleDeleteService}
+              onRefreshHealth={handleRefreshHealth}
+            />
+          </DragDropContext>
+
+          {services.length === 0 && !showAddForm && (
+            <div className="text-center py-5">
+              <div style={{ fontSize: '48px' }} className="mb-4">
+                🖥️
+              </div>
+              <h3>No services yet</h3>
+              <p className="text-muted mb-4">
+                Get started by adding your first home server service
+              </p>
+              <Button
+                variant="primary"
+                size="lg"
+                onClick={() => setShowAddForm(true)}
+              >
+                <Plus className="me-2" />
+                Add Your First Service
+              </Button>
+            </div>
+          )}
+        </Container>
+      </main>
+    </div>
   );
 }
 

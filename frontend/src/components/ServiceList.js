@@ -1,6 +1,6 @@
 import React from 'react';
 import { Droppable } from 'react-beautiful-dnd';
-import { Row, Col } from 'antd';
+import { Row, Col } from 'react-bootstrap';
 import ServiceItem from './ServiceItem';
 
 const ServiceList = ({ services, onUpdate, onDelete, onRefreshHealth }) => {
@@ -10,23 +10,22 @@ const ServiceList = ({ services, onUpdate, onDelete, onRefreshHealth }) => {
         <div
           {...provided.droppableProps}
           ref={provided.innerRef}
+          className={`p-${snapshot.isDraggingOver ? '3' : '0'} rounded transition-all`}
           style={{
-            backgroundColor: snapshot.isDraggingOver ? '#f5f5f5' : 'transparent',
-            padding: snapshot.isDraggingOver ? '16px' : '0',
-            borderRadius: '8px',
+            backgroundColor: snapshot.isDraggingOver ? '#f8f9fa' : 'transparent',
             transition: 'all 0.2s ease',
             minHeight: '100px'
           }}
         >
-          <Row gutter={[16, 16]}>
+          <Row className="g-3">
             {services.map((service, index) => (
               <Col
                 key={service.id}
-                xs={24}
-                sm={24}
-                md={12}
-                lg={8}
-                xl={6}
+                xs={12}
+                sm={12}
+                md={6}
+                lg={4}
+                xl={4}
               >
                 <ServiceItem
                   service={service}

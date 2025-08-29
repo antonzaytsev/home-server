@@ -1,54 +1,71 @@
 import React, { useState } from 'react';
 import { Draggable } from 'react-beautiful-dnd';
-import { Card, Badge, Button, Form, Input, Space, Typography, Modal } from 'antd';
+import { Card, Badge, Button, Form, Modal } from 'react-bootstrap';
 import { 
-  EditOutlined, 
-  DeleteOutlined, 
-  ReloadOutlined, 
-  LinkOutlined,
-  HolderOutlined,
-  SaveOutlined,
-  CloseOutlined
-} from '@ant-design/icons';
-
-const { Text, Title } = Typography;
+  PencilSquare, 
+  Trash, 
+  ArrowRepeat, 
+  Link45deg,
+  GripVertical,
+  Check,
+  X
+} from 'react-bootstrap-icons';
 
 const ServiceItem = ({ service, index, onUpdate, onDelete, onRefreshHealth }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [form] = Form.useForm();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [formData, setFormData] = useState({
+    name: service.name,
+    address: service.address,
+    port: service.port || ''
+  });
+  const [validated, setValidated] = useState(false);
 
   const handleEdit = () => {
     setIsEditing(true);
-    form.setFieldsValue({
+    setFormData({
       name: service.name,
       address: service.address,
       port: service.port || ''
     });
+    setValidated(false);
   };
 
-  const handleSave = async (values) => {
+  const handleSave = async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    
+    if (form.checkValidity() === false) {
+      event.stopPropagation();
+      setValidated(true);
+      return;
+    }
+
     await onUpdate(service.id, {
-      name: values.name,
-      address: values.address,
-      port: values.port ? parseInt(values.port) : null
+      name: formData.name,
+      address: formData.address,
+      port: formData.port ? parseInt(formData.port) : null
     });
     setIsEditing(false);
+    setValidated(false);
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    form.resetFields();
+    setValidated(false);
+  };
+
+  const handleChange = (field) => (event) => {
+    setFormData({ ...formData, [field]: event.target.value });
   };
 
   const handleDelete = () => {
-    Modal.confirm({
-      title: 'Are you sure you want to delete this service?',
-      content: `This will permanently delete "${service.name}".`,
-      okText: 'Yes, Delete',
-      okType: 'danger',
-      cancelText: 'Cancel',
-      onOk: () => onDelete(service.id),
-    });
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    onDelete(service.id);
+    setShowDeleteModal(false);
   };
 
   const getStatusIcon = (status) => {
@@ -96,162 +113,183 @@ const ServiceItem = ({ service, index, onUpdate, onDelete, onRefreshHealth }) =>
       case 'healthy':
         return 'success';
       case 'unhealthy':
-        return 'error';
+        return 'danger';
       default:
         return 'warning';
     }
   };
 
   return (
-    <Draggable draggableId={service.id.toString()} index={index}>
-      {(provided, snapshot) => (
-        <Card
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          size="small"
-          style={{
-            marginBottom: '16px',
-            cursor: snapshot.isDragging ? 'grabbing' : 'default',
-            transform: snapshot.isDragging ? 'rotate(5deg)' : 'none',
-            opacity: snapshot.isDragging ? 0.8 : 1,
-            transition: 'all 0.2s ease',
-          }}
-          hoverable={!isEditing}
-        >
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <div 
-              {...provided.dragHandleProps}
-              style={{ 
-                cursor: 'grab',
-                padding: '4px',
-                color: '#8c8c8c',
-                alignSelf: 'flex-start'
-              }}
-              title="Drag to reorder"
-            >
-              <HolderOutlined />
-            </div>
+    <>
+      <Draggable draggableId={service.id.toString()} index={index}>
+        {(provided, snapshot) => (
+          <Card
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            className={`h-100 ${!isEditing ? 'shadow-sm' : ''}`}
+            style={{
+              cursor: snapshot.isDragging ? 'grabbing' : 'default',
+              transform: snapshot.isDragging ? 'rotate(5deg)' : 'none',
+              opacity: snapshot.isDragging ? 0.8 : 1,
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <Card.Body className="d-flex gap-2 p-3">
+              <div 
+                {...provided.dragHandleProps}
+                className="text-muted align-self-start"
+                style={{ cursor: 'grab', padding: '2px' }}
+                title="Drag to reorder"
+              >
+                <GripVertical size={14} />
+              </div>
 
-            <div style={{ flex: 1 }}>
-              {isEditing ? (
-                <Form
-                  form={form}
-                  layout="vertical"
-                  onFinish={handleSave}
-                  size="small"
-                >
-                  <Form.Item
-                    name="name"
-                    rules={[{ required: true, message: 'Please enter a service name' }]}
-                  >
-                    <Input placeholder="Service Name" autoFocus />
-                  </Form.Item>
-                  <Form.Item
-                    name="address"
-                    rules={[{ required: true, message: 'Please enter an address' }]}
-                  >
-                    <Input placeholder="IP Address or hostname" />
-                  </Form.Item>
-                  <Form.Item name="port">
-                    <Input type="number" placeholder="Port (optional)" />
-                  </Form.Item>
-                  <Form.Item style={{ margin: 0 }}>
-                    <Space>
+              <div className="flex-fill">
+                {isEditing ? (
+                  <Form noValidate validated={validated} onSubmit={handleSave}>
+                    <Form.Group className="mb-2">
+                      <Form.Control
+                        size="sm"
+                        type="text"
+                        placeholder="Service Name"
+                        value={formData.name}
+                        onChange={handleChange('name')}
+                        autoFocus
+                        required
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        Please enter a service name.
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                    <Form.Group className="mb-2">
+                      <Form.Control
+                        size="sm"
+                        type="text"
+                        placeholder="IP Address or hostname"
+                        value={formData.address}
+                        onChange={handleChange('address')}
+                        required
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        Please enter an address.
+                      </Form.Control.Feedback>
+                    </Form.Group>
+                    <Form.Group className="mb-3">
+                      <Form.Control
+                        size="sm"
+                        type="number"
+                        placeholder="Port (optional)"
+                        value={formData.port}
+                        onChange={handleChange('port')}
+                      />
+                    </Form.Group>
+                    <div className="d-flex gap-2">
                       <Button 
-                        type="primary" 
-                        htmlType="submit" 
-                        size="small"
-                        icon={<SaveOutlined />}
+                        variant="primary" 
+                        type="submit" 
+                        size="sm"
                       >
+                        <Check className="me-1" />
                         Save
                       </Button>
                       <Button 
-                        size="small"
-                        icon={<CloseOutlined />}
+                        variant="outline-secondary"
+                        size="sm"
                         onClick={handleCancel}
                       >
+                        <X className="me-1" />
                         Cancel
                       </Button>
-                    </Space>
-                  </Form.Item>
-                </Form>
-              ) : (
-                <>
-                  <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    marginBottom: '12px'
-                  }}>
-                    <Title 
-                      level={4} 
-                      style={{ 
-                        margin: 0, 
-                        cursor: 'pointer',
-                        color: '#1890ff'
-                      }} 
-                      onClick={handleServiceClick}
-                    >
-                      {service.name}
-                    </Title>
-                    <Badge 
-                      status={getStatusColor(service.status)}
-                      text={`${getStatusIcon(service.status)} ${getStatusText(service.status)}`}
-                    />
-                  </div>
-
-                  <div style={{ marginBottom: '12px' }}>
-                    <Text 
-                      style={{ 
-                        color: '#1890ff',
-                        cursor: 'pointer'
-                      }} 
-                      onClick={handleServiceClick}
-                      title="Click to open in new tab"
-                    >
-                      <LinkOutlined /> {service.address}{service.port ? `:${service.port}` : ''}
-                    </Text>
-                    <div>
-                      <Text type="secondary" style={{ fontSize: '12px' }}>
-                        Last checked: {formatLastChecked(service.last_checked)}
-                      </Text>
                     </div>
-                  </div>
+                  </Form>
+                ) : (
+                  <>
+                    <div className="d-flex justify-content-between align-items-start mb-2">
+                      <h6 
+                        className="mb-0 text-primary fw-bold" 
+                        style={{ cursor: 'pointer' }}
+                        onClick={handleServiceClick}
+                        title="Click to open in new tab"
+                      >
+                        {service.name}
+                      </h6>
+                      <Badge bg={getStatusColor(service.status)} className="ms-2">
+                        {getStatusIcon(service.status)}
+                      </Badge>
+                    </div>
 
-                  <Space size="small">
-                    <Button
-                      size="small"
-                      icon={<ReloadOutlined />}
-                      onClick={() => onRefreshHealth(service.id)}
-                      title="Refresh health status"
-                    >
-                      Refresh
-                    </Button>
-                    <Button
-                      size="small"
-                      icon={<EditOutlined />}
-                      onClick={handleEdit}
-                      title="Edit service"
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      size="small"
-                      danger
-                      icon={<DeleteOutlined />}
-                      onClick={handleDelete}
-                      title="Delete service"
-                    >
-                      Delete
-                    </Button>
-                  </Space>
-                </>
-              )}
-            </div>
-          </div>
-        </Card>
-      )}
-    </Draggable>
+                    <div className="mb-2">
+                      <div 
+                        className="text-primary small d-flex align-items-center" 
+                        style={{ cursor: 'pointer' }}
+                        onClick={handleServiceClick}
+                        title="Click to open in new tab"
+                      >
+                        <Link45deg size={12} className="me-1" />
+                        {service.address}{service.port ? `:${service.port}` : ''}
+                      </div>
+                      <div className="text-muted" style={{ fontSize: '0.7rem' }}>
+                        {formatLastChecked(service.last_checked)}
+                      </div>
+                    </div>
+
+                    <div className="d-flex gap-1">
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="p-1 text-secondary"
+                        onClick={() => onRefreshHealth(service.id)}
+                        title="Refresh health status"
+                      >
+                        <ArrowRepeat size={14} />
+                      </Button>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="p-1 text-primary"
+                        onClick={handleEdit}
+                        title="Edit service"
+                      >
+                        <PencilSquare size={14} />
+                      </Button>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="p-1 text-danger"
+                        onClick={handleDelete}
+                        title="Delete service"
+                      >
+                        <Trash size={14} />
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </Card.Body>
+          </Card>
+        )}
+      </Draggable>
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Delete Service</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete this service?
+          <br />
+          This will permanently delete <strong>"{service.name}"</strong>.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={confirmDelete}>
+            Yes, Delete
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </>
   );
 };
 

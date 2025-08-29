@@ -16,15 +16,15 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        API_URL: ${API_URL:-http://localhost:4567/api}
-    command: /bin/bash -c 'npm start'
+    command: ["npm", "start"]
     volumes:
       - ./frontend:/app
+      - node_modules:/app/node_modules
     environment:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
+      - API_URL=${API_URL:-http://backend:4567/api}
     depends_on:
       - backend
     ports:
@@ -33,3 +33,4 @@ services:
 
 volumes:
   json_data:
+  node_modules:

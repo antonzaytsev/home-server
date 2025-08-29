@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Draggable } from 'react-beautiful-dnd';
-import './ServiceItem.css';
+
+// Using CSS classes from the UI toolkit
 
 const ServiceItem = ({ service, index, onUpdate, onDelete, onRefreshHealth }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -85,106 +86,125 @@ const ServiceItem = ({ service, index, onUpdate, onDelete, onRefreshHealth }) =>
     return date.toLocaleDateString();
   };
 
+  const getStatusVariant = (status) => {
+    switch (status) {
+      case 'healthy':
+        return 'success';
+      case 'unhealthy':
+        return 'danger';
+      default:
+        return 'warning';
+    }
+  };
+
   return (
     <Draggable draggableId={service.id.toString()} index={index}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className={`service-item ${snapshot.isDragging ? 'dragging' : ''}`}
+          className={`card transition-all ${snapshot.isDragging ? 'shadow-xl scale-105' : 'shadow-md hover:shadow-lg'}`}
         >
-          <div {...provided.dragHandleProps} className="drag-handle">
-            ⋮⋮
+          <div className="card-body">
+            <div className="d-flex align-start gap-md">
+              <div 
+                {...provided.dragHandleProps} 
+                className="cursor-move text-tertiary hover:text-primary p-xs rounded"
+                title="Drag to reorder"
+              >
+                ⋮⋮
+              </div>
+
+              <div className="flex-1">
+                {isEditing ? (
+                  <form onSubmit={handleSave} className="d-flex flex-column gap-md">
+                    <input
+                      className="input"
+                      placeholder="Service Name"
+                      value={editForm.name}
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      required
+                      autoFocus
+                    />
+                    <input
+                      className="input"
+                      placeholder="IP Address or hostname"
+                      value={editForm.address}
+                      onChange={(e) => handleInputChange('address', e.target.value)}
+                      required
+                    />
+                    <input
+                      className="input"
+                      type="number"
+                      placeholder="Port (optional)"
+                      value={editForm.port}
+                      onChange={(e) => handleInputChange('port', e.target.value)}
+                    />
+                    <div className="d-flex gap-sm">
+                      <button type="submit" className="btn btn-primary btn-sm">
+                        Save
+                      </button>
+                      <button 
+                        type="button" 
+                        className="btn btn-outline-secondary btn-sm"
+                        onClick={handleCancel}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <div className="d-flex align-center justify-between mb-md">
+                      <h3 className="card-title mb-0 cursor-pointer" onClick={handleServiceClick}>
+                        {service.name}
+                      </h3>
+                      <span className={`badge badge-${getStatusVariant(service.status)}`}>
+                        {getStatusIcon(service.status)} {getStatusText(service.status)}
+                      </span>
+                    </div>
+
+                    <div className="mb-md">
+                      <div 
+                        className="text-primary cursor-pointer hover:underline mb-xs" 
+                        onClick={handleServiceClick}
+                        title="Click to open in new tab"
+                      >
+                        <strong>🔗 {service.address}{service.port ? `:${service.port}` : ''}</strong>
+                      </div>
+                      <div className="text-sm text-tertiary">
+                        Last checked: {formatLastChecked(service.last_checked)}
+                      </div>
+                    </div>
+
+                    <div className="d-flex gap-xs">
+                      <button
+                        className="btn btn-outline-secondary btn-sm"
+                        onClick={() => onRefreshHealth(service.id)}
+                        title="Refresh health status"
+                      >
+                        🔄 Refresh
+                      </button>
+                      <button
+                        className="btn btn-outline-primary btn-sm"
+                        onClick={handleEdit}
+                        title="Edit service"
+                      >
+                        ✏️ Edit
+                      </button>
+                      <button
+                        className="btn btn-outline-danger btn-sm"
+                        onClick={() => onDelete(service.id)}
+                        title="Delete service"
+                      >
+                        🗑️ Delete
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
-
-          {isEditing ? (
-            <form onSubmit={handleSave} className="edit-form">
-              <div className="form-group">
-                <input
-                  type="text"
-                  placeholder="Service Name"
-                  value={editForm.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <input
-                  type="text"
-                  placeholder="IP Address"
-                  value={editForm.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <input
-                  type="number"
-                  placeholder="Port (optional)"
-                  value={editForm.port}
-                  onChange={(e) => handleInputChange('port', e.target.value)}
-                />
-              </div>
-              <div className="form-actions">
-                <button type="submit" className="btn btn-primary btn-small">
-                  Save
-                </button>
-                <button 
-                  type="button" 
-                  onClick={handleCancel}
-                  className="btn btn-secondary btn-small"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          ) : (
-            <>
-              <div className="service-header">
-                <h3 className="service-name">{service.name}</h3>
-                <div className="service-status">
-                  <span className="status-icon">{getStatusIcon(service.status)}</span>
-                  <span className="status-text">{getStatusText(service.status)}</span>
-                </div>
-              </div>
-
-              <div className="service-details">
-                <div className="service-address" onClick={handleServiceClick}>
-                  <span className="address-label">Address:</span>
-                  <span className="address-value">
-                    {service.address}{service.port ? `:${service.port}` : ''}
-                  </span>
-                </div>
-                <div className="last-checked">
-                  Last checked: {formatLastChecked(service.last_checked)}
-                </div>
-              </div>
-
-              <div className="service-actions">
-                <button
-                  onClick={() => onRefreshHealth(service.id)}
-                  className="btn btn-secondary btn-small"
-                  title="Refresh health status"
-                >
-                  🔄
-                </button>
-                <button
-                  onClick={handleEdit}
-                  className="btn btn-secondary btn-small"
-                  title="Edit service"
-                >
-                  ✏️
-                </button>
-                <button
-                  onClick={() => onDelete(service.id)}
-                  className="btn btn-danger btn-small"
-                  title="Delete service"
-                >
-                  🗑️
-                </button>
-              </div>
-            </>
-          )}
         </div>
       )}
     </Draggable>

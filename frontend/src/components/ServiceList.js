@@ -1,7 +1,6 @@
 import React from 'react';
 import { Droppable } from 'react-beautiful-dnd';
 import ServiceItem from './ServiceItem';
-import './ServiceList.css';
 
 const ServiceList = ({ services, onUpdate, onDelete, onRefreshHealth }) => {
   return (
@@ -10,7 +9,7 @@ const ServiceList = ({ services, onUpdate, onDelete, onRefreshHealth }) => {
         <div
           {...provided.droppableProps}
           ref={provided.innerRef}
-          className={`service-list ${snapshot.isDraggingOver ? 'dragging-over' : ''}`}
+          className={`card-grid gap-lg ${snapshot.isDraggingOver ? 'bg-tertiary p-md rounded-lg' : ''}`}
         >
           {services.map((service, index) => (
             <ServiceItem

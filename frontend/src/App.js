@@ -3,7 +3,8 @@ import axios from 'axios';
 import { DragDropContext } from 'react-beautiful-dnd';
 import ServiceList from './components/ServiceList';
 import AddServiceForm from './components/AddServiceForm';
-import './App.css';
+
+import './ui-kit.css';
 
 const API_BASE_URL = 'http://localhost:4567/api';
 
@@ -105,50 +106,77 @@ function App() {
 
   if (loading) {
     return (
-      <div className="app">
-        <div className="loading">
-          <div className="spinner"></div>
-          <p>Loading services...</p>
+      <div className="container py-3xl">
+        <div className="d-flex flex-column align-center justify-center min-h-screen">
+          <div className="spinner spinner-xl"></div>
+          <p className="text-lg text-secondary mt-md">Loading services...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>🏠 Home Server Gallery</h1>
-        <p className="subtitle">Your network services at a glance</p>
+    <div className="min-h-screen bg-primary">
+      <header className="bg-secondary border-b px-lg py-xl">
+        <div className="container">
+          <div className="d-flex align-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-primary mb-sm">
+                🏠 Home Server Gallery
+              </h1>
+              <p className="text-lg text-secondary">
+                Your network services at a glance
+              </p>
+            </div>
+            <span className="badge badge-primary px-md py-sm">
+              {services.length} Service{services.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+        </div>
       </header>
 
       {error && (
-        <div className="error-banner">
-          <span>⚠️ {error}</span>
-          <button onClick={() => setError(null)} className="close-error">×</button>
+        <div className="container pt-md">
+          <div className="alert alert-danger">
+            <div className="alert-content">
+              <div className="alert-title">Error</div>
+              {error}
+            </div>
+            <button 
+              onClick={() => setError(null)} 
+              className="alert-close"
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </div>
         </div>
       )}
 
-      <main className="main-content">
-        <div className="actions">
+      <main className="container py-xl">
+        <div className="d-flex gap-md mb-xl">
           <button 
+            className={`btn ${showAddForm ? "btn-outline-primary" : "btn-primary"} btn-lg`}
             onClick={() => setShowAddForm(!showAddForm)}
-            className="btn btn-primary"
           >
             {showAddForm ? '× Cancel' : '+ Add Service'}
           </button>
+          
           <button 
+            className="btn btn-outline-secondary btn-lg"
             onClick={fetchServices}
-            className="btn btn-secondary"
           >
             🔄 Refresh
           </button>
         </div>
 
         {showAddForm && (
-          <AddServiceForm 
-            onSubmit={handleAddService}
-            onCancel={() => setShowAddForm(false)}
-          />
+          <div className="mb-xl">
+            <AddServiceForm 
+              onSubmit={handleAddService}
+              onCancel={() => setShowAddForm(false)}
+            />
+          </div>
         )}
 
         <DragDropContext onDragEnd={handleDragEnd}>
@@ -160,17 +188,26 @@ function App() {
           />
         </DragDropContext>
 
-        {services.length === 0 && (
-          <div className="empty-state">
-            <h3>No services yet</h3>
-            <p>Click "Add Service" to get started</p>
+        {services.length === 0 && !showAddForm && (
+          <div className="empty-state text-center py-3xl">
+            <div className="empty-state-icon mb-lg">
+              🖥️
+            </div>
+            <h3 className="empty-state-title">No services yet</h3>
+            <p className="empty-state-text mb-lg">
+              Get started by adding your first home server service
+            </p>
+            <button 
+              className="btn btn-primary btn-lg"
+              onClick={() => setShowAddForm(true)}
+            >
+              + Add Your First Service
+            </button>
           </div>
         )}
       </main>
 
-      <footer className="app-footer">
-        <p>Home Server Gallery v1.0.0</p>
-      </footer>
+
     </div>
   );
 }

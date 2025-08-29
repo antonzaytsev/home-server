@@ -1,45 +1,25 @@
 import React, { useState } from 'react';
+import { Form, Input, Button, Card, Typography, Alert, Space } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 
-// Using CSS classes from the UI toolkit
+const { Title, Text } = Typography;
 
 const AddServiceForm = ({ onSubmit, onCancel }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    address: '',
-    port: ''
-  });
+  const [form] = Form.useForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!formData.name || !formData.address) {
-      alert('Please fill in the required fields');
-      return;
-    }
-
+  const handleSubmit = async (values) => {
     setIsSubmitting(true);
     
     try {
       await onSubmit({
-        name: formData.name,
-        address: formData.address,
-        port: formData.port ? parseInt(formData.port) : null
+        name: values.name,
+        address: values.address,
+        port: values.port ? parseInt(values.port) : null
       });
       
       // Reset form
-      setFormData({
-        name: '',
-        address: '',
-        port: ''
-      });
+      form.resetFields();
     } catch (error) {
       console.error('Error submitting form:', error);
     } finally {
@@ -48,101 +28,93 @@ const AddServiceForm = ({ onSubmit, onCancel }) => {
   };
 
   return (
-    <div className="card shadow-lg">
-      <div className="card-body">
-        <h3 className="card-title mb-lg">✨ Add New Service</h3>
+    <Card 
+      title={
+        <Title level={3} style={{ margin: 0 }}>
+          ✨ Add New Service
+        </Title>
+      }
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={handleSubmit}
+        autoComplete="off"
+      >
+        <Form.Item
+          label="Service Name"
+          name="name"
+          rules={[{ required: true, message: 'Please enter a service name' }]}
+        >
+          <Input 
+            placeholder="e.g., Home Assistant, Plex Server"
+            disabled={isSubmitting}
+            autoFocus
+          />
+        </Form.Item>
         
-        <form onSubmit={handleSubmit} className="d-flex flex-column gap-md">
-          <div>
-            <label htmlFor="name" className="label label-required mb-xs">
-              Service Name
-            </label>
-            <input
-              className="input"
-              id="name"
-              placeholder="e.g., Home Assistant, Plex Server"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              required
-              disabled={isSubmitting}
-              autoFocus
-            />
-          </div>
-          
-          <div>
-            <label htmlFor="address" className="label label-required mb-xs">
-              IP Address or Hostname
-            </label>
-            <input
-              className="input"
-              id="address"
-              placeholder="e.g., 192.168.0.30 or localhost"
-              value={formData.address}
-              onChange={(e) => handleInputChange('address', e.target.value)}
-              required
-              disabled={isSubmitting}
-            />
-            <small className="form-text text-tertiary">
-              Enter the IP address or hostname of your service
-            </small>
-          </div>
-          
-          <div>
-            <label htmlFor="port" className="label mb-xs">
-              Port (optional)
-            </label>
-            <input
-              className="input"
-              type="number"
-              id="port"
-              placeholder="e.g., 8080, 9000"
-              value={formData.port}
-              onChange={(e) => handleInputChange('port', e.target.value)}
-              min="1"
-              max="65535"
-              disabled={isSubmitting}
-            />
-            <small className="form-text text-tertiary">
-              Leave empty for default HTTP port (80)
-            </small>
-          </div>
-          
-          <div className="d-flex gap-sm pt-md">
-            <button 
-              type="submit" 
-              className={`btn btn-primary btn-lg ${isSubmitting ? 'btn-loading' : ''}`}
-              disabled={isSubmitting}
+        <Form.Item
+          label="IP Address or Hostname"
+          name="address"
+          rules={[{ required: true, message: 'Please enter an IP address or hostname' }]}
+          help="Enter the IP address or hostname of your service"
+        >
+          <Input 
+            placeholder="e.g., 192.168.0.30 or localhost"
+            disabled={isSubmitting}
+          />
+        </Form.Item>
+        
+        <Form.Item
+          label="Port (optional)"
+          name="port"
+          help="Leave empty for default HTTP port (80)"
+        >
+          <Input 
+            type="number"
+            placeholder="e.g., 8080, 9000"
+            min={1}
+            max={65535}
+            disabled={isSubmitting}
+          />
+        </Form.Item>
+        
+        <Form.Item>
+          <Space>
+            <Button 
+              type="primary"
+              htmlType="submit" 
+              size="large"
+              icon={<PlusOutlined />}
+              loading={isSubmitting}
             >
-              {isSubmitting ? 'Adding...' : '+ Add Service'}
-            </button>
-            <button 
-              type="button" 
-              className="btn btn-outline-secondary btn-lg"
+              Add Service
+            </Button>
+            <Button 
+              size="large"
               onClick={onCancel}
               disabled={isSubmitting}
             >
               Cancel
-            </button>
-          </div>
-        </form>
-        
-        <div className="mt-xl">
-          <div className="alert alert-info mb-md">
-            <div className="alert-content">
-              <strong>💡 Quick Examples:</strong>
-            </div>
-          </div>
-          <div className="bg-secondary p-md rounded text-sm">
-            <div className="d-flex flex-column gap-xs">
-              <div><strong>🏠 Home Assistant:</strong> 192.168.0.30:8123</div>
-              <div><strong>🎬 Plex Media Server:</strong> 192.168.0.30:32400</div>
-              <div><strong>🌐 Router Admin:</strong> 192.168.0.1 (port 80)</div>
-              <div><strong>🔒 Pi-hole:</strong> 192.168.0.100:8080</div>
-            </div>
-          </div>
-        </div>
+            </Button>
+          </Space>
+        </Form.Item>
+      </Form>
+      
+      <Alert
+        message="💡 Quick Examples:"
+        type="info"
+        style={{ marginBottom: '16px' }}
+      />
+      <div style={{ backgroundColor: '#fafafa', padding: '16px', borderRadius: '8px' }}>
+        <Space direction="vertical" size="small">
+          <Text><strong>🏠 Home Assistant:</strong> 192.168.0.30:8123</Text>
+          <Text><strong>🎬 Plex Media Server:</strong> 192.168.0.30:32400</Text>
+          <Text><strong>🌐 Router Admin:</strong> 192.168.0.1 (port 80)</Text>
+          <Text><strong>🔒 Pi-hole:</strong> 192.168.0.100:8080</Text>
+        </Space>
       </div>
-    </div>
+    </Card>
   );
 };
 

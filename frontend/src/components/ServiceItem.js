@@ -1,49 +1,54 @@
 import React, { useState } from 'react';
 import { Draggable } from 'react-beautiful-dnd';
+import { Card, Badge, Button, Form, Input, Space, Typography, Modal } from 'antd';
+import { 
+  EditOutlined, 
+  DeleteOutlined, 
+  ReloadOutlined, 
+  LinkOutlined,
+  HolderOutlined,
+  SaveOutlined,
+  CloseOutlined
+} from '@ant-design/icons';
 
-// Using CSS classes from the UI toolkit
+const { Text, Title } = Typography;
 
 const ServiceItem = ({ service, index, onUpdate, onDelete, onRefreshHealth }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editForm, setEditForm] = useState({
-    name: service.name,
-    address: service.address,
-    port: service.port || ''
-  });
+  const [form] = Form.useForm();
 
   const handleEdit = () => {
     setIsEditing(true);
-    setEditForm({
+    form.setFieldsValue({
       name: service.name,
       address: service.address,
       port: service.port || ''
     });
   };
 
-  const handleSave = async (e) => {
-    e.preventDefault();
+  const handleSave = async (values) => {
     await onUpdate(service.id, {
-      name: editForm.name,
-      address: editForm.address,
-      port: editForm.port ? parseInt(editForm.port) : null
+      name: values.name,
+      address: values.address,
+      port: values.port ? parseInt(values.port) : null
     });
     setIsEditing(false);
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    setEditForm({
-      name: service.name,
-      address: service.address,
-      port: service.port || ''
-    });
+    form.resetFields();
   };
 
-  const handleInputChange = (field, value) => {
-    setEditForm(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  const handleDelete = () => {
+    Modal.confirm({
+      title: 'Are you sure you want to delete this service?',
+      content: `This will permanently delete "${service.name}".`,
+      okText: 'Yes, Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: () => onDelete(service.id),
+    });
   };
 
   const getStatusIcon = (status) => {
@@ -86,12 +91,12 @@ const ServiceItem = ({ service, index, onUpdate, onDelete, onRefreshHealth }) =>
     return date.toLocaleDateString();
   };
 
-  const getStatusVariant = (status) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case 'healthy':
         return 'success';
       case 'unhealthy':
-        return 'danger';
+        return 'error';
       default:
         return 'warning';
     }
@@ -100,112 +105,151 @@ const ServiceItem = ({ service, index, onUpdate, onDelete, onRefreshHealth }) =>
   return (
     <Draggable draggableId={service.id.toString()} index={index}>
       {(provided, snapshot) => (
-        <div
+        <Card
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className={`card transition-all ${snapshot.isDragging ? 'shadow-xl scale-105' : 'shadow-md hover:shadow-lg'}`}
+          size="small"
+          style={{
+            marginBottom: '16px',
+            cursor: snapshot.isDragging ? 'grabbing' : 'default',
+            transform: snapshot.isDragging ? 'rotate(5deg)' : 'none',
+            opacity: snapshot.isDragging ? 0.8 : 1,
+            transition: 'all 0.2s ease',
+          }}
+          hoverable={!isEditing}
         >
-          <div className="card-body">
-            <div className="d-flex align-start gap-md">
-              <div 
-                {...provided.dragHandleProps} 
-                className="cursor-move text-tertiary hover:text-primary p-xs rounded"
-                title="Drag to reorder"
-              >
-                ⋮⋮
-              </div>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <div 
+              {...provided.dragHandleProps}
+              style={{ 
+                cursor: 'grab',
+                padding: '4px',
+                color: '#8c8c8c',
+                alignSelf: 'flex-start'
+              }}
+              title="Drag to reorder"
+            >
+              <HolderOutlined />
+            </div>
 
-              <div className="flex-1">
-                {isEditing ? (
-                  <form onSubmit={handleSave} className="d-flex flex-column gap-md">
-                    <input
-                      className="input"
-                      placeholder="Service Name"
-                      value={editForm.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      required
-                      autoFocus
-                    />
-                    <input
-                      className="input"
-                      placeholder="IP Address or hostname"
-                      value={editForm.address}
-                      onChange={(e) => handleInputChange('address', e.target.value)}
-                      required
-                    />
-                    <input
-                      className="input"
-                      type="number"
-                      placeholder="Port (optional)"
-                      value={editForm.port}
-                      onChange={(e) => handleInputChange('port', e.target.value)}
-                    />
-                    <div className="d-flex gap-sm">
-                      <button type="submit" className="btn btn-primary btn-sm">
+            <div style={{ flex: 1 }}>
+              {isEditing ? (
+                <Form
+                  form={form}
+                  layout="vertical"
+                  onFinish={handleSave}
+                  size="small"
+                >
+                  <Form.Item
+                    name="name"
+                    rules={[{ required: true, message: 'Please enter a service name' }]}
+                  >
+                    <Input placeholder="Service Name" autoFocus />
+                  </Form.Item>
+                  <Form.Item
+                    name="address"
+                    rules={[{ required: true, message: 'Please enter an address' }]}
+                  >
+                    <Input placeholder="IP Address or hostname" />
+                  </Form.Item>
+                  <Form.Item name="port">
+                    <Input type="number" placeholder="Port (optional)" />
+                  </Form.Item>
+                  <Form.Item style={{ margin: 0 }}>
+                    <Space>
+                      <Button 
+                        type="primary" 
+                        htmlType="submit" 
+                        size="small"
+                        icon={<SaveOutlined />}
+                      >
                         Save
-                      </button>
-                      <button 
-                        type="button" 
-                        className="btn btn-outline-secondary btn-sm"
+                      </Button>
+                      <Button 
+                        size="small"
+                        icon={<CloseOutlined />}
                         onClick={handleCancel}
                       >
                         Cancel
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  <>
-                    <div className="d-flex align-center justify-between mb-md">
-                      <h3 className="card-title mb-0 cursor-pointer" onClick={handleServiceClick}>
-                        {service.name}
-                      </h3>
-                      <span className={`badge badge-${getStatusVariant(service.status)}`}>
-                        {getStatusIcon(service.status)} {getStatusText(service.status)}
-                      </span>
-                    </div>
+                      </Button>
+                    </Space>
+                  </Form.Item>
+                </Form>
+              ) : (
+                <>
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    marginBottom: '12px'
+                  }}>
+                    <Title 
+                      level={4} 
+                      style={{ 
+                        margin: 0, 
+                        cursor: 'pointer',
+                        color: '#1890ff'
+                      }} 
+                      onClick={handleServiceClick}
+                    >
+                      {service.name}
+                    </Title>
+                    <Badge 
+                      status={getStatusColor(service.status)}
+                      text={`${getStatusIcon(service.status)} ${getStatusText(service.status)}`}
+                    />
+                  </div>
 
-                    <div className="mb-md">
-                      <div 
-                        className="text-primary cursor-pointer hover:underline mb-xs" 
-                        onClick={handleServiceClick}
-                        title="Click to open in new tab"
-                      >
-                        <strong>🔗 {service.address}{service.port ? `:${service.port}` : ''}</strong>
-                      </div>
-                      <div className="text-sm text-tertiary">
+                  <div style={{ marginBottom: '12px' }}>
+                    <Text 
+                      style={{ 
+                        color: '#1890ff',
+                        cursor: 'pointer'
+                      }} 
+                      onClick={handleServiceClick}
+                      title="Click to open in new tab"
+                    >
+                      <LinkOutlined /> {service.address}{service.port ? `:${service.port}` : ''}
+                    </Text>
+                    <div>
+                      <Text type="secondary" style={{ fontSize: '12px' }}>
                         Last checked: {formatLastChecked(service.last_checked)}
-                      </div>
+                      </Text>
                     </div>
+                  </div>
 
-                    <div className="d-flex gap-xs">
-                      <button
-                        className="btn btn-outline-secondary btn-sm"
-                        onClick={() => onRefreshHealth(service.id)}
-                        title="Refresh health status"
-                      >
-                        🔄 Refresh
-                      </button>
-                      <button
-                        className="btn btn-outline-primary btn-sm"
-                        onClick={handleEdit}
-                        title="Edit service"
-                      >
-                        ✏️ Edit
-                      </button>
-                      <button
-                        className="btn btn-outline-danger btn-sm"
-                        onClick={() => onDelete(service.id)}
-                        title="Delete service"
-                      >
-                        🗑️ Delete
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
+                  <Space size="small">
+                    <Button
+                      size="small"
+                      icon={<ReloadOutlined />}
+                      onClick={() => onRefreshHealth(service.id)}
+                      title="Refresh health status"
+                    >
+                      Refresh
+                    </Button>
+                    <Button
+                      size="small"
+                      icon={<EditOutlined />}
+                      onClick={handleEdit}
+                      title="Edit service"
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      size="small"
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={handleDelete}
+                      title="Delete service"
+                    >
+                      Delete
+                    </Button>
+                  </Space>
+                </>
+              )}
             </div>
           </div>
-        </div>
+        </Card>
       )}
     </Draggable>
   );

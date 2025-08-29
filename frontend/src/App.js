@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { DragDropContext } from 'react-beautiful-dnd';
+import { Layout, Button, Spin, Alert, Typography, Badge, Space } from 'antd';
+import { PlusOutlined, ReloadOutlined, HomeOutlined } from '@ant-design/icons';
 import ServiceList from './components/ServiceList';
 import AddServiceForm from './components/AddServiceForm';
 
-import './ui-kit.css';
+const { Header, Content } = Layout;
+const { Title, Text } = Typography;
 
 const API_BASE_URL = 'http://localhost:4567/api';
 
@@ -106,72 +109,76 @@ function App() {
 
   if (loading) {
     return (
-      <div className="container py-3xl">
-        <div className="d-flex flex-column align-center justify-center min-h-screen">
-          <div className="spinner spinner-xl"></div>
-          <p className="text-lg text-secondary mt-md">Loading services...</p>
-        </div>
-      </div>
+      <Layout style={{ minHeight: '100vh' }}>
+        <Content style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <Space direction="vertical" align="center">
+            <Spin size="large" />
+            <Text>Loading services...</Text>
+          </Space>
+        </Content>
+      </Layout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-primary">
-      <header className="bg-secondary border-b px-lg py-xl">
-        <div className="container">
-          <div className="d-flex align-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-primary mb-sm">
-                🏠 Home Server Gallery
-              </h1>
-              <p className="text-lg text-secondary">
-                Your network services at a glance
-              </p>
-            </div>
-            <span className="badge badge-primary px-md py-sm">
-              {services.length} Service{services.length !== 1 ? 's' : ''}
-            </span>
+    <Layout style={{ minHeight: '100vh' }}>
+      <Header style={{ 
+        backgroundColor: '#fff', 
+        borderBottom: '1px solid #f0f0f0', 
+        padding: '0 24px',
+        height: 'auto',
+        paddingTop: '24px',
+        paddingBottom: '24px'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <Title level={1} style={{ margin: 0, marginBottom: '8px' }}>
+              <HomeOutlined /> Home Server Gallery
+            </Title>
+            <Text type="secondary" style={{ fontSize: '16px' }}>
+              Your network services at a glance
+            </Text>
           </div>
+          <Badge 
+            count={`${services.length} Service${services.length !== 1 ? 's' : ''}`} 
+            style={{ backgroundColor: '#1890ff' }}
+          />
         </div>
-      </header>
+      </Header>
 
-      {error && (
-        <div className="container pt-md">
-          <div className="alert alert-danger">
-            <div className="alert-content">
-              <div className="alert-title">Error</div>
-              {error}
-            </div>
-            <button 
-              onClick={() => setError(null)} 
-              className="alert-close"
-              aria-label="Close"
-            >
-              ×
-            </button>
-          </div>
-        </div>
-      )}
+      <Content style={{ padding: '24px' }}>
+        {error && (
+          <Alert
+            message="Error"
+            description={error}
+            type="error"
+            closable
+            onClose={() => setError(null)}
+            style={{ marginBottom: '24px' }}
+          />
+        )}
 
-      <main className="container py-xl">
-        <div className="d-flex gap-md mb-xl">
-          <button 
-            className={`btn ${showAddForm ? "btn-outline-primary" : "btn-primary"} btn-lg`}
+        <Space size="middle" style={{ marginBottom: '24px' }}>
+          <Button 
+            type={showAddForm ? "default" : "primary"}
+            size="large"
+            icon={<PlusOutlined />}
             onClick={() => setShowAddForm(!showAddForm)}
           >
-            {showAddForm ? '× Cancel' : '+ Add Service'}
-          </button>
+            {showAddForm ? 'Cancel' : 'Add Service'}
+          </Button>
           
-          <button 
-            className="btn btn-outline-secondary btn-lg"
+          <Button 
+            size="large"
+            icon={<ReloadOutlined />}
             onClick={fetchServices}
           >
-            🔄 Refresh
-          </button>
-        </div>
+            Refresh
+          </Button>
+        </Space>
 
         {showAddForm && (
-          <div className="mb-xl">
+          <div style={{ marginBottom: '24px' }}>
             <AddServiceForm 
               onSubmit={handleAddService}
               onCancel={() => setShowAddForm(false)}
@@ -189,26 +196,26 @@ function App() {
         </DragDropContext>
 
         {services.length === 0 && !showAddForm && (
-          <div className="empty-state text-center py-3xl">
-            <div className="empty-state-icon mb-lg">
+          <div style={{ textAlign: 'center', padding: '80px 0' }}>
+            <div style={{ fontSize: '48px', marginBottom: '24px' }}>
               🖥️
             </div>
-            <h3 className="empty-state-title">No services yet</h3>
-            <p className="empty-state-text mb-lg">
+            <Title level={3}>No services yet</Title>
+            <Text type="secondary" style={{ display: 'block', marginBottom: '24px' }}>
               Get started by adding your first home server service
-            </p>
-            <button 
-              className="btn btn-primary btn-lg"
+            </Text>
+            <Button 
+              type="primary"
+              size="large"
+              icon={<PlusOutlined />}
               onClick={() => setShowAddForm(true)}
             >
-              + Add Your First Service
-            </button>
+              Add Your First Service
+            </Button>
           </div>
         )}
-      </main>
-
-
-    </div>
+      </Content>
+    </Layout>
   );
 }
 

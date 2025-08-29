@@ -1,0 +1,183 @@
+.service-item {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  cursor: pointer;
+}
+
+.service-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.service-item.dragging {
+  transform: rotate(3deg);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+  background: rgba(255, 255, 255, 0.98);
+}
+
+/* Drag Handle */
+.drag-handle {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  color: #ccc;
+  cursor: grab;
+  font-size: 1.2rem;
+  line-height: 1;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.drag-handle:hover {
+  color: #999;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Service Header */
+.service-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  margin-left: 2rem; /* Space for drag handle */
+}
+
+.service-name {
+  color: #333;
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.service-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.status-icon {
+  font-size: 1rem;
+}
+
+.status-text {
+  color: #666;
+}
+
+/* Service Details */
+.service-details {
+  margin-bottom: 1rem;
+  margin-left: 2rem; /* Space for drag handle */
+}
+
+.service-address {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.service-address:hover {
+  background: rgba(103, 126, 234, 0.1);
+}
+
+.address-label {
+  font-size: 0.8rem;
+  color: #888;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.address-value {
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 1rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.last-checked {
+  font-size: 0.8rem;
+  color: #999;
+  margin-top: 0.5rem;
+}
+
+/* Service Actions */
+.service-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-left: 2rem; /* Space for drag handle */
+}
+
+/* Edit Form */
+.edit-form {
+  margin-left: 2rem; /* Space for drag handle */
+}
+
+.edit-form .form-group {
+  margin-bottom: 1rem;
+}
+
+.edit-form .form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.edit-form .form-group input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.edit-form .form-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .service-item {
+    padding: 1rem;
+  }
+  
+  .service-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+  
+  .service-actions {
+    justify-content: center;
+  }
+  
+  .drag-handle {
+    display: none; /* Hide drag handle on mobile */
+  }
+  
+  .service-header,
+  .service-details,
+  .service-actions,
+  .edit-form {
+    margin-left: 0;
+  }
+}

@@ -6,7 +6,7 @@ import { Plus, ArrowRepeat, House } from 'react-bootstrap-icons';
 import ServiceList from './components/ServiceList';
 import AddServiceForm from './components/AddServiceForm';
 
-const API_BASE_URL = process.env.API_URL || 'http://localhost:4568/api';
+const API_BASE_URL = process.env.API_URL || 'http://192.168.0.30:4568/api';
 
 function App() {
   const [services, setServices] = useState([]);

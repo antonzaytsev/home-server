@@ -29,7 +29,7 @@ A simple web application to manage and monitor your home network services. Built
 
 ## Architecture
 
-- **Backend Service**: Ruby Sinatra API with automatic health checking (port 4567)
+- **Backend Service**: Ruby Sinatra API with automatic health checking (port 4568)
 - **Frontend Service**: React application built and served by Node.js serve (port 80)
 - **Storage**: Schema-less JSON file storage with thread-safe operations
 - **Health Checks**: Background thread checking service availability every minute
@@ -61,7 +61,7 @@ A simple web application to manage and monitor your home network services. Built
 
 ### Running Individual Services
 
-**Backend Development** (API only on port 4567):
+**Backend Development** (API only on port 4568):
 ```bash
 cd backend
 bundle install
@@ -83,7 +83,7 @@ docker-compose up -d
 ### Service Communication
 
 - **Frontend (port 80)**: Node.js serve hosts React app
-- **Backend (port 4567)**: Ruby API, accessible directly from frontend
+- **Backend (port 4568)**: Ruby API, accessible directly from frontend
 - **API Access**: Frontend calls backend API directly with CORS support
 
 ### Data Management
@@ -92,7 +92,7 @@ The JSON storage file is automatically created and initialized with sample data 
 ## Configuration
 
 The application runs in multiple Docker containers:
-- **Backend**: Ruby Sinatra API on port 4567 (exposed for development)
+- **Backend**: Ruby Sinatra API on port 4568 (exposed for development)
 - **Frontend**: Node.js serve hosting React app on port 80
 - **Storage**: JSON file stored in Docker volume for persistence
 - **Communication**: Frontend calls backend API directly via CORS

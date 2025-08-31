@@ -3,9 +3,10 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: home-server-backend
+    command: ["puma", "-p", "4567", "-e", "production"]
     volumes:
-      - json_data:/app/db
+      - ./backend:/app
+      - bundle:/usr/local/bundle
     environment:
       - RACK_ENV=production
     ports:
@@ -32,5 +33,5 @@ services:
     restart: unless-stopped
 
 volumes:
-  json_data:
+  bundle:
   node_modules:

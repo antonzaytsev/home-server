@@ -38,8 +38,10 @@ class JsonStore
       new_service = {
         'id' => new_id,
         'name' => service_data['name'],
-        'address' => service_data['address'],
-        'port' => service_data['port'],
+        'url' => service_data['url'],
+        'health_check_url' => service_data['health_check_url'],
+        'address' => service_data['address'],  # Keep for backward compatibility
+        'port' => service_data['port'],        # Keep for backward compatibility
         'display_order' => max_order + 1,
         'status' => 'unknown',
         'last_checked' => Time.now.strftime('%Y-%m-%d %H:%M:%S'),
@@ -61,8 +63,10 @@ class JsonStore
       
       if service
         service['name'] = service_data['name'] if service_data['name']
-        service['address'] = service_data['address'] if service_data['address']
-        service['port'] = service_data['port'] if service_data.key?('port')
+        service['url'] = service_data['url'] if service_data['url']
+        service['health_check_url'] = service_data['health_check_url'] if service_data.key?('health_check_url')
+        service['address'] = service_data['address'] if service_data['address']  # Keep for backward compatibility
+        service['port'] = service_data['port'] if service_data.key?('port')      # Keep for backward compatibility
         service['updated_at'] = Time.now.strftime('%Y-%m-%d %H:%M:%S')
         write_data(data)
         true

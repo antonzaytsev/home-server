@@ -4,15 +4,22 @@ import { DragDropContext } from 'react-beautiful-dnd';
 import { Container, Row, Col, Button, Spinner, Alert, Badge } from 'react-bootstrap';
 import { Plus, ArrowRepeat, House } from 'react-bootstrap-icons';
 import ServiceList from './components/ServiceList';
-import AddServiceForm from './components/AddServiceForm';
+import ServiceModal from './components/ServiceModal';
 
-const API_BASE_URL = process.env.API_URL || 'http://192.168.0.30:4568/api';
+// API configuration with fallback to current window location
+const API_HOST = process.env.REACT_APP_API_HOST || window.location.hostname;
+const API_PORT = process.env.REACT_APP_API_PORT || '4568';
+const API_BASE_URL = `http://${API_HOST}:${API_PORT}/api`;
+
+console.log('API Configuration:', { API_HOST, API_PORT, API_BASE_URL });
+console.log('process.env', process.env);
 
 function App() {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [showServiceModal, setShowServiceModal] = useState(false);
+  const [editingService, setEditingService] = useState(null);
 
   useEffect(() => {
     fetchServices();
@@ -32,25 +39,32 @@ function App() {
     }
   };
 
-  const handleAddService = async (serviceData) => {
+  const handleServiceSubmit = async (serviceData) => {
     try {
-      await axios.post(`${API_BASE_URL}/services`, serviceData);
-      setShowAddForm(false);
+      if (editingService) {
+        // Update existing service
+        await axios.put(`${API_BASE_URL}/services/${editingService.id}`, serviceData);
+      } else {
+        // Create new service
+        await axios.post(`${API_BASE_URL}/services`, serviceData);
+      }
+      setShowServiceModal(false);
+      setEditingService(null);
       fetchServices(); // Refresh the list
     } catch (err) {
-      setError('Failed to add service');
-      console.error('Error adding service:', err);
+      setError(editingService ? 'Failed to update service' : 'Failed to add service');
+      console.error('Error with service:', err);
     }
   };
 
-  const handleUpdateService = async (id, serviceData) => {
-    try {
-      await axios.put(`${API_BASE_URL}/services/${id}`, serviceData);
-      fetchServices(); // Refresh the list
-    } catch (err) {
-      setError('Failed to update service');
-      console.error('Error updating service:', err);
-    }
+  const handleEditService = (service) => {
+    setEditingService(service);
+    setShowServiceModal(true);
+  };
+
+  const handleAddService = () => {
+    setEditingService(null);
+    setShowServiceModal(true);
   };
 
   const handleDeleteService = async (id) => {
@@ -125,11 +139,11 @@ function App() {
             </h1>
             <div className="d-flex gap-2">
               <Button
-                variant={showAddForm ? "outline-primary" : "primary"}
-                onClick={() => setShowAddForm(!showAddForm)}
+                variant="primary"
+                onClick={handleAddService}
               >
                 <Plus className="me-2" />
-                {showAddForm ? 'Cancel' : 'Add Service'}
+                Add Service
               </Button>
               <Button
                 variant="outline-secondary"
@@ -157,25 +171,16 @@ function App() {
             </Alert>
           )}
 
-          {showAddForm && (
-            <div className="mb-4">
-              <AddServiceForm
-                onSubmit={handleAddService}
-                onCancel={() => setShowAddForm(false)}
-              />
-            </div>
-          )}
-
           <DragDropContext onDragEnd={handleDragEnd}>
             <ServiceList
               services={services}
-              onUpdate={handleUpdateService}
+              onEdit={handleEditService}
               onDelete={handleDeleteService}
               onRefreshHealth={handleRefreshHealth}
             />
           </DragDropContext>
 
-          {services.length === 0 && !showAddForm && (
+          {services.length === 0 && (
             <div className="text-center py-5">
               <div style={{ fontSize: '48px' }} className="mb-4">
                 🖥️
@@ -187,7 +192,7 @@ function App() {
               <Button
                 variant="primary"
                 size="lg"
-                onClick={() => setShowAddForm(true)}
+                onClick={handleAddService}
               >
                 <Plus className="me-2" />
                 Add Your First Service
@@ -196,6 +201,16 @@ function App() {
           )}
         </Container>
       </main>
+
+      <ServiceModal
+        show={showServiceModal}
+        onHide={() => {
+          setShowServiceModal(false);
+          setEditingService(null);
+        }}
+        onSubmit={handleServiceSubmit}
+        service={editingService}
+      />
     </div>
   );
 }

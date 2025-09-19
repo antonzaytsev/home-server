@@ -3,7 +3,7 @@ import { Droppable } from 'react-beautiful-dnd';
 import { Row, Col } from 'react-bootstrap';
 import ServiceItem from './ServiceItem';
 
-const ServiceList = ({ services, onUpdate, onDelete, onRefreshHealth }) => {
+const ServiceList = ({ services, onEdit, onDelete, onRefreshHealth }) => {
   return (
     <Droppable droppableId="services">
       {(provided, snapshot) => (
@@ -30,7 +30,7 @@ const ServiceList = ({ services, onUpdate, onDelete, onRefreshHealth }) => {
                 <ServiceItem
                   service={service}
                   index={index}
-                  onUpdate={onUpdate}
+                  onEdit={onEdit}
                   onDelete={onDelete}
                   onRefreshHealth={onRefreshHealth}
                 />

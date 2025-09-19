@@ -1,62 +1,19 @@
 import React, { useState } from 'react';
 import { Draggable } from 'react-beautiful-dnd';
-import { Card, Badge, Button, Form, Modal } from 'react-bootstrap';
+import { Card, Badge, Button, Modal } from 'react-bootstrap';
 import { 
   PencilSquare, 
   Trash, 
   ArrowRepeat, 
   Link45deg,
-  GripVertical,
-  Check,
-  X
+  GripVertical
 } from 'react-bootstrap-icons';
 
-const ServiceItem = ({ service, index, onUpdate, onDelete, onRefreshHealth }) => {
-  const [isEditing, setIsEditing] = useState(false);
+const ServiceItem = ({ service, index, onEdit, onDelete, onRefreshHealth }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [formData, setFormData] = useState({
-    name: service.name,
-    address: service.address,
-    port: service.port || ''
-  });
-  const [validated, setValidated] = useState(false);
 
   const handleEdit = () => {
-    setIsEditing(true);
-    setFormData({
-      name: service.name,
-      address: service.address,
-      port: service.port || ''
-    });
-    setValidated(false);
-  };
-
-  const handleSave = async (event) => {
-    event.preventDefault();
-    const form = event.currentTarget;
-    
-    if (form.checkValidity() === false) {
-      event.stopPropagation();
-      setValidated(true);
-      return;
-    }
-
-    await onUpdate(service.id, {
-      name: formData.name,
-      address: formData.address,
-      port: formData.port ? parseInt(formData.port) : null
-    });
-    setIsEditing(false);
-    setValidated(false);
-  };
-
-  const handleCancel = () => {
-    setIsEditing(false);
-    setValidated(false);
-  };
-
-  const handleChange = (field) => (event) => {
-    setFormData({ ...formData, [field]: event.target.value });
+    onEdit(service);
   };
 
   const handleDelete = () => {
@@ -91,8 +48,35 @@ const ServiceItem = ({ service, index, onUpdate, onDelete, onRefreshHealth }) =>
   };
 
   const handleServiceClick = () => {
-    const url = `http://${service.address}${service.port ? `:${service.port}` : ''}`;
+    // Handle both new URL format and legacy address/port format
+    let url;
+    if (service.url) {
+      url = service.url;
+    } else if (service.address) {
+      if (service.address.startsWith('http://') || service.address.startsWith('https://')) {
+        url = service.address;
+      } else {
+        url = `http://${service.address}${service.port ? `:${service.port}` : ''}`;
+      }
+    } else {
+      return; // No valid URL
+    }
+    
     window.open(url, '_blank');
+  };
+
+  const getDisplayUrl = () => {
+    // Handle both new URL format and legacy address/port format
+    if (service.url) {
+      return service.url.replace(/^https?:\/\//, ''); // Remove protocol for display
+    } else if (service.address) {
+      if (service.address.startsWith('http://') || service.address.startsWith('https://')) {
+        return service.address.replace(/^https?:\/\//, '');
+      } else {
+        return `${service.address}${service.port ? `:${service.port}` : ''}`;
+      }
+    }
+    return 'No URL';
   };
 
   const formatLastChecked = (timestamp) => {
@@ -126,7 +110,7 @@ const ServiceItem = ({ service, index, onUpdate, onDelete, onRefreshHealth }) =>
           <Card
             ref={provided.innerRef}
             {...provided.draggableProps}
-            className={`h-100 ${!isEditing ? 'shadow-sm' : ''}`}
+            className="h-100 shadow-sm"
             style={{
               cursor: snapshot.isDragging ? 'grabbing' : 'default',
               transform: snapshot.isDragging ? 'rotate(5deg)' : 'none',
@@ -145,65 +129,7 @@ const ServiceItem = ({ service, index, onUpdate, onDelete, onRefreshHealth }) =>
               </div>
 
               <div className="flex-fill">
-                {isEditing ? (
-                  <Form noValidate validated={validated} onSubmit={handleSave}>
-                    <Form.Group className="mb-2">
-                      <Form.Control
-                        size="sm"
-                        type="text"
-                        placeholder="Service Name"
-                        value={formData.name}
-                        onChange={handleChange('name')}
-                        autoFocus
-                        required
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        Please enter a service name.
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                    <Form.Group className="mb-2">
-                      <Form.Control
-                        size="sm"
-                        type="text"
-                        placeholder="IP Address or hostname"
-                        value={formData.address}
-                        onChange={handleChange('address')}
-                        required
-                      />
-                      <Form.Control.Feedback type="invalid">
-                        Please enter an address.
-                      </Form.Control.Feedback>
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                      <Form.Control
-                        size="sm"
-                        type="number"
-                        placeholder="Port (optional)"
-                        value={formData.port}
-                        onChange={handleChange('port')}
-                      />
-                    </Form.Group>
-                    <div className="d-flex gap-2">
-                      <Button 
-                        variant="primary" 
-                        type="submit" 
-                        size="sm"
-                      >
-                        <Check className="me-1" />
-                        Save
-                      </Button>
-                      <Button 
-                        variant="outline-secondary"
-                        size="sm"
-                        onClick={handleCancel}
-                      >
-                        <X className="me-1" />
-                        Cancel
-                      </Button>
-                    </div>
-                  </Form>
-                ) : (
-                  <>
+                <>
                     <div className="d-flex justify-content-between align-items-start mb-2">
                       <h6 
                         className="mb-0 text-primary fw-bold" 
@@ -226,7 +152,7 @@ const ServiceItem = ({ service, index, onUpdate, onDelete, onRefreshHealth }) =>
                         title="Click to open in new tab"
                       >
                         <Link45deg size={12} className="me-1" />
-                        {service.address}{service.port ? `:${service.port}` : ''}
+                        {getDisplayUrl()}
                       </div>
                       <div className="text-muted" style={{ fontSize: '0.7rem' }}>
                         {formatLastChecked(service.last_checked)}
@@ -262,8 +188,7 @@ const ServiceItem = ({ service, index, onUpdate, onDelete, onRefreshHealth }) =>
                         <Trash size={14} />
                       </Button>
                     </div>
-                  </>
-                )}
+                </>
               </div>
             </Card.Body>
           </Card>

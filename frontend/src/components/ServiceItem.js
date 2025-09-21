@@ -1,15 +1,7 @@
 import React, { useState } from 'react';
-import { Draggable } from 'react-beautiful-dnd';
-import { Card, Badge, Button, Modal } from 'react-bootstrap';
-import { 
-  PencilSquare, 
-  Trash, 
-  ArrowRepeat, 
-  Link45deg,
-  GripVertical
-} from 'react-bootstrap-icons';
+// Drag handle is provided by parent
 
-const ServiceItem = ({ service, index, onEdit, onDelete, onRefreshHealth }) => {
+const ServiceItem = ({ service, onEdit, onDelete, onRefreshHealth }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleEdit = () => {
@@ -25,14 +17,14 @@ const ServiceItem = ({ service, index, onEdit, onDelete, onRefreshHealth }) => {
     setShowDeleteModal(false);
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusClass = (status) => {
     switch (status) {
       case 'healthy':
-        return '🟢';
+        return 'chip success';
       case 'unhealthy':
-        return '🔴';
+        return 'chip error';
       default:
-        return '🟡';
+        return 'chip warning';
     }
   };
 
@@ -47,8 +39,22 @@ const ServiceItem = ({ service, index, onEdit, onDelete, onRefreshHealth }) => {
     }
   };
 
+  const getServiceIcon = (serviceName) => {
+    const name = serviceName.toLowerCase();
+    if (name.includes('home assistant') || name.includes('hass')) return '🏠';
+    if (name.includes('plex')) return '🎬';
+    if (name.includes('router') || name.includes('admin')) return '🌐';
+    if (name.includes('dns')) return '🌍';
+    if (name.includes('torrent') || name.includes('qbit')) return '⬇️';
+    if (name.includes('jellyfin')) return '🍿';
+    if (name.includes('cockpit')) return '⚙️';
+    if (name.includes('portainer')) return '🐳';
+    if (name.includes('calendar')) return '📅';
+    if (name.includes('trading') || name.includes('charts')) return '📈';
+    return '🖥️';
+  };
+
   const handleServiceClick = () => {
-    // Handle both new URL format and legacy address/port format
     let url;
     if (service.url) {
       url = service.url;
@@ -59,16 +65,15 @@ const ServiceItem = ({ service, index, onEdit, onDelete, onRefreshHealth }) => {
         url = `http://${service.address}${service.port ? `:${service.port}` : ''}`;
       }
     } else {
-      return; // No valid URL
+      return;
     }
-    
+
     window.open(url, '_blank');
   };
 
   const getDisplayUrl = () => {
-    // Handle both new URL format and legacy address/port format
     if (service.url) {
-      return service.url.replace(/^https?:\/\//, ''); // Remove protocol for display
+      return service.url.replace(/^https?:\/\//, '');
     } else if (service.address) {
       if (service.address.startsWith('http://') || service.address.startsWith('https://')) {
         return service.address.replace(/^https?:\/\//, '');
@@ -85,135 +90,71 @@ const ServiceItem = ({ service, index, onEdit, onDelete, onRefreshHealth }) => {
     const now = new Date();
     const diffMs = now - date;
     const diffMins = Math.floor(diffMs / 60000);
-    
+
     if (diffMins < 1) return 'Just now';
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
     return date.toLocaleDateString();
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'healthy':
-        return 'success';
-      case 'unhealthy':
-        return 'danger';
-      default:
-        return 'warning';
-    }
-  };
 
   return (
     <>
-      <Draggable draggableId={service.id.toString()} index={index}>
-        {(provided, snapshot) => (
-          <Card
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            className="h-100 shadow-sm"
-            style={{
-              cursor: snapshot.isDragging ? 'grabbing' : 'default',
-              transform: snapshot.isDragging ? 'rotate(5deg)' : 'none',
-              opacity: snapshot.isDragging ? 0.8 : 1,
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <Card.Body className="d-flex gap-2 p-3">
-              <div 
-                {...provided.dragHandleProps}
-                className="text-muted align-self-start"
-                style={{ cursor: 'grab', padding: '2px' }}
-                title="Drag to reorder"
+      <div className="card">
+        <div className="cardContent">
+          <div className="header">
+            <div className="avatar">{getServiceIcon(service.name)}</div>
+            <div style={{ flexGrow: 1, minWidth: 0 }}>
+              <div
+                className="serviceName"
+                onClick={handleServiceClick}
+                title={service.name}
               >
-                <GripVertical size={14} />
+                {service.name}
               </div>
+            </div>
+          </div>
 
-              <div className="flex-fill">
-                <>
-                    <div className="d-flex justify-content-between align-items-start mb-2">
-                      <h6 
-                        className="mb-0 text-primary fw-bold" 
-                        style={{ cursor: 'pointer' }}
-                        onClick={handleServiceClick}
-                        title="Click to open in new tab"
-                      >
-                        {service.name}
-                      </h6>
-                      <Badge bg={getStatusColor(service.status)} className="ms-2">
-                        {getStatusIcon(service.status)}
-                      </Badge>
-                    </div>
+          <div onClick={handleServiceClick} className="urlRow" title={getDisplayUrl()}>
+            <span style={{ fontSize: 16, marginRight: 6 }}>🔗</span>
+            <div className="urlText">{getDisplayUrl()}</div>
+          </div>
+        </div>
 
-                    <div className="mb-2">
-                      <div 
-                        className="text-primary small d-flex align-items-center" 
-                        style={{ cursor: 'pointer' }}
-                        onClick={handleServiceClick}
-                        title="Click to open in new tab"
-                      >
-                        <Link45deg size={12} className="me-1" />
-                        {getDisplayUrl()}
-                      </div>
-                      <div className="text-muted" style={{ fontSize: '0.7rem' }}>
-                        {formatLastChecked(service.last_checked)}
-                      </div>
-                    </div>
+        <div className="cardActions">
+          <div className={getStatusClass(service.status)}>
+            <span style={{ fontSize: 14 }}>{service.status === 'healthy' ? '✔' : service.status === 'unhealthy' ? '✖' : '!'}</span>
+            {getStatusText(service.status)}
+          </div>
 
-                    <div className="d-flex gap-1">
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="p-1 text-secondary"
-                        onClick={() => onRefreshHealth(service.id)}
-                        title="Refresh health status"
-                      >
-                        <ArrowRepeat size={14} />
-                      </Button>
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="p-1 text-primary"
-                        onClick={handleEdit}
-                        title="Edit service"
-                      >
-                        <PencilSquare size={14} />
-                      </Button>
-                      <Button
-                        variant="link"
-                        size="sm"
-                        className="p-1 text-danger"
-                        onClick={handleDelete}
-                        title="Delete service"
-                      >
-                        <Trash size={14} />
-                      </Button>
-                    </div>
-                </>
+          <div className="actionsRight">
+            <button className="iconButton" onClick={() => onRefreshHealth(service.id)} title="Refresh">⟲</button>
+            <button className="iconButton" onClick={handleEdit} title="Edit" style={{ color: 'var(--primary)' }}>✎</button>
+            <button className="iconButton" onClick={handleDelete} title="Delete" style={{ color: 'var(--error)' }}>🗑</button>
+          </div>
+        </div>
+      </div>
+
+      {showDeleteModal && (
+        <div className="modalOverlay" onClick={() => setShowDeleteModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modalHeader">
+              <div className="modalTitle">Delete Service</div>
+              <button className="iconButton" onClick={() => setShowDeleteModal(false)}>✕</button>
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              Are you sure you want to delete this service?
+              <div style={{ marginTop: 8, fontWeight: 700 }}>
+                This will permanently delete "{service.name}".
               </div>
-            </Card.Body>
-          </Card>
-        )}
-      </Draggable>
-
-      {/* Delete Confirmation Modal */}
-      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Delete Service</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          Are you sure you want to delete this service?
-          <br />
-          This will permanently delete <strong>"{service.name}"</strong>.
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
-            Cancel
-          </Button>
-          <Button variant="danger" onClick={confirmDelete}>
-            Yes, Delete
-          </Button>
-        </Modal.Footer>
-      </Modal>
+            </div>
+            <div className="modalActions">
+              <button className="button" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+              <button className="button" style={{ background: 'var(--error)', color: '#fff', borderColor: 'var(--error)' }} onClick={confirmDelete}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

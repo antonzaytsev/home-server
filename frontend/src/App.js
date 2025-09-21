@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { DragDropContext } from 'react-beautiful-dnd';
-import { Container, Row, Col, Button, Spinner, Alert, Badge } from 'react-bootstrap';
-import { Plus, ArrowRepeat, House } from 'react-bootstrap-icons';
 import ServiceList from './components/ServiceList';
 import ServiceModal from './components/ServiceModal';
+import './styles.css';
 
 // API configuration with fallback to current window location
 const API_HOST = process.env.REACT_APP_API_HOST || window.location.hostname;
@@ -13,6 +11,9 @@ const API_BASE_URL = `http://${API_HOST}:${API_PORT}/api`;
 
 console.log('API Configuration:', { API_HOST, API_PORT, API_BASE_URL });
 console.log('process.env', process.env);
+
+// Icons (simple emoji-based to avoid dependencies)
+const Icon = ({ children }) => <span style={{ display: 'inline-flex', alignItems: 'center' }}>{children}</span>;
 
 function App() {
   const [services, setServices] = useState([]);
@@ -68,46 +69,16 @@ function App() {
   };
 
   const handleDeleteService = async (id) => {
-    if (window.confirm('Are you sure you want to delete this service?')) {
-      try {
-        await axios.delete(`${API_BASE_URL}/services/${id}`);
-        fetchServices(); // Refresh the list
-      } catch (err) {
-        setError('Failed to delete service');
-        console.error('Error deleting service:', err);
-      }
-    }
-  };
-
-  const handleDragEnd = async (result) => {
-    if (!result.destination) {
-      return;
-    }
-
-    const items = Array.from(services);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-
-    // Update display_order for all items
-    const updatedServices = items.map((service, index) => ({
-      id: service.id,
-      display_order: index + 1
-    }));
-
-    // Optimistically update the UI
-    setServices(items);
-
     try {
-      await axios.put(`${API_BASE_URL}/services/reorder`, {
-        services: updatedServices
-      });
+      await axios.delete(`${API_BASE_URL}/services/${id}`);
+      fetchServices(); // Refresh the list
     } catch (err) {
-      setError('Failed to reorder services');
-      console.error('Error reordering services:', err);
-      // Revert on error
-      fetchServices();
+      setError('Failed to delete service');
+      console.error('Error deleting service:', err);
     }
   };
+
+  // Drag-and-drop removed
 
   const handleRefreshHealth = async (id) => {
     try {
@@ -120,97 +91,56 @@ function App() {
 
   if (loading) {
     return (
-      <Container fluid className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
-        <div className="text-center">
-          <Spinner animation="border" size="lg" className="mb-3" />
-          <p className="text-muted">Loading services...</p>
-        </div>
-      </Container>
+      <div className="container" style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: 'var(--text-secondary)' }}>Loading services...</div>
+      </div>
     );
   }
 
   return (
     <div style={{ minHeight: '100vh' }}>
-      <header className="bg-white border-bottom py-4">
-        <Container>
-          <div className="d-flex justify-content-between align-items-center">
-            <h1 className="mb-0">
-              <House className="me-2" /> Сервисы
-            </h1>
-            <div className="d-flex gap-2">
-              <Button
-                variant="primary"
-                onClick={handleAddService}
-              >
-                <Plus className="me-2" />
-                Add Service
-              </Button>
-              <Button
-                variant="outline-secondary"
-                onClick={fetchServices}
-              >
-                <ArrowRepeat className="me-2" />
-                Refresh
-              </Button>
-            </div>
+      <header className="appBar">
+        <div className="toolbar">
+          <Icon>📊</Icon>
+          <div className="title">Сервисы <span className="countChip">{services.length}</span></div>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button className="button primary" onClick={handleAddService}>＋ Add Service</button>
+            <button className="button outlined" onClick={fetchServices}>⟲ Refresh</button>
           </div>
-        </Container>
+        </div>
       </header>
 
-      <main className="p-4">
-        <Container>
-          {error && (
-            <Alert
-              variant="danger"
-              dismissible
-              onClose={() => setError(null)}
-              className="mb-4"
-            >
-              <Alert.Heading>Error</Alert.Heading>
-              {error}
-            </Alert>
-          )}
+      <main className="container">
+        {error && (
+          <div className="errorBanner" role="alert">{error}</div>
+        )}
 
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <ServiceList
-              services={services}
-              onEdit={handleEditService}
-              onDelete={handleDeleteService}
-              onRefreshHealth={handleRefreshHealth}
-            />
-          </DragDropContext>
+        <ServiceList
+          services={services}
+          onEdit={handleEditService}
+          onDelete={handleDeleteService}
+          onRefreshHealth={handleRefreshHealth}
+        />
 
-          {services.length === 0 && (
-            <div className="text-center py-5">
-              <div style={{ fontSize: '48px' }} className="mb-4">
-                🖥️
-              </div>
-              <h3>No services yet</h3>
-              <p className="text-muted mb-4">
-                Get started by adding your first home server service
-              </p>
-              <Button
-                variant="primary"
-                size="lg"
-                onClick={handleAddService}
-              >
-                <Plus className="me-2" />
-                Add Your First Service
-              </Button>
-            </div>
-          )}
-        </Container>
+        {services.length === 0 && !loading && (
+          <div style={{ textAlign: 'center', padding: '64px 24px', marginTop: 24, borderRadius: 12, background: 'var(--bg-paper)', border: '1px solid var(--border)' }}>
+            <div style={{ fontSize: 96, marginBottom: 16, opacity: .8 }}>🖥️</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--text)', marginBottom: 12 }}>No services yet</div>
+            <div style={{ color: 'var(--text-secondary)', maxWidth: 500, margin: '0 auto 24px' }}>Transform your home server into a beautiful dashboard by adding your first service</div>
+            <button className="button primary" onClick={handleAddService}>＋ Add Your First Service</button>
+          </div>
+        )}
+
+        <ServiceModal
+          show={showServiceModal}
+          onHide={() => {
+            setShowServiceModal(false);
+            setEditingService(null);
+          }}
+          onSubmit={handleServiceSubmit}
+          service={editingService}
+        />
       </main>
-
-      <ServiceModal
-        show={showServiceModal}
-        onHide={() => {
-          setShowServiceModal(false);
-          setEditingService(null);
-        }}
-        onSubmit={handleServiceSubmit}
-        service={editingService}
-      />
     </div>
   );
 }

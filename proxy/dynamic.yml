@@ -1,0 +1,76 @@
+# Traefik Dynamic Configuration
+# To add a new domain:
+# 1. Add a router entry below (router name must match service name)
+# 2. Add a service entry in the services section
+# 3. Save - Traefik will automatically reload
+
+http:
+  routers:
+    # Router: matches domain and forwards to service
+    home-internal:
+      rule: Host(`home.internal`)      # Domain to match
+      service: home-internal           # Service name (must match below)
+      entryPoints:
+        - web                          # Port 80
+
+    ha-internal:
+      rule: Host(`ha.internal`)
+      service: ha-internal
+      entryPoints:
+        - web
+
+    torrent-internal:
+      rule: Host(`torrent.internal`)
+      service: torrent-internal
+      entryPoints:
+        - web
+
+    traefik-internal:
+      rule: Host(`traefik.internal`)
+      service: traefik-internal
+      entryPoints:
+        - web
+
+    dns-internal:
+      rule: Host(`dns.internal`)
+      service: dns-internal
+      entryPoints:
+        - web
+
+    calendar-internal:
+      rule: Host(`calendar.internal`)
+      service: calendar-internal
+      entryPoints:
+        - web
+
+  services:
+    # Service: defines backend server(s)
+    home-internal:
+      loadBalancer:
+        servers:
+          - url: http://host.docker.internal:4569  # Access host's localhost
+
+    ha-internal:
+      loadBalancer:
+        servers:
+          - url: http://192.168.0.40:8123
+
+    torrent-internal:
+      loadBalancer:
+        servers:
+          - url: http://host.docker.internal:8081  # Access host's localhost
+
+    traefik-internal:
+      loadBalancer:
+        servers:
+          - url: http://host.docker.internal:8030
+
+    dns-internal:
+      loadBalancer:
+        servers:
+          - url: http://host.docker.internal:3090
+
+    calendar-internal:
+      loadBalancer:
+        servers:
+          - url: http://host.docker.internal:9000

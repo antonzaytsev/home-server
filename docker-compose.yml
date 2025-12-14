@@ -1,4 +1,19 @@
 services:
+  traefik:
+    image: traefik:v2.11
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./proxy/dynamic.yml:/etc/traefik/dynamic.yml:ro
+      - ./proxy/traefik.yml:/etc/traefik/traefik.yml:ro
+    ports:
+      - "80:80"
+      - "8030:8080"  # Traefik dashboard
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Access host's localhost
+    restart: unless-stopped
+    networks:
+      - default
+
   backend:
     build:
       context: ./backend
@@ -12,12 +27,16 @@ services:
     ports:
       - "4568:4568"
     restart: unless-stopped
+    networks:
+      - default
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     command: ["npm", "start"]
+    ports:
+      - "4569:3000"
     volumes:
       - ./frontend:/app
     environment:
@@ -26,11 +45,13 @@ services:
       - WATCHPACK_POLLING=true
       - API_PORT=${API_PORT:-4568}
       - WDS_SOCKET_PORT=0
+      - DANGEROUSLY_DISABLE_HOST_CHECK=true
+      - WDS_SOCKET_HOST=home.internal
     depends_on:
       - backend
-    ports:
-      - "80:3000"
     restart: unless-stopped
+    networks:
+      - default
 
 volumes:
   bundle:

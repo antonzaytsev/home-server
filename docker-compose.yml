@@ -7,6 +7,7 @@ services:
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
     ports:
       - "80:80"
+      - "443:443"
       - "8030:8080"  # Traefik dashboard
     extra_hosts:
       - "host.docker.internal:host-gateway"  # Access host's localhost

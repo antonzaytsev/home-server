@@ -6,6 +6,16 @@
 
 http:
   routers:
+    # Catch-all HTTPS router that redirects to HTTP
+    https-redirect:
+      rule: HostRegexp(`{host:.+}`)
+      entryPoints:
+        - websecure
+      middlewares:
+        - redirect-to-http
+      service: noop@internal
+      tls: {}
+
     # Router: matches domain and forwards to service
     home-internal:
       rule: Host(`home.internal`)      # Domain to match
@@ -54,6 +64,12 @@ http:
       service: vpn-backend-internal
       entryPoints:
         - web
+
+  middlewares:
+    redirect-to-http:
+      redirectScheme:
+        scheme: http
+        permanent: true
 
   services:
     # Service: defines backend server(s)

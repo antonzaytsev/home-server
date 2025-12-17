@@ -3,8 +3,8 @@ services:
     image: traefik:v2.11
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./proxy/dynamic.yml:/etc/traefik/dynamic.yml:ro
-      - ./proxy/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/dynamic.yml:/etc/traefik/dynamic.yml:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
     ports:
       - "80:80"
       - "8030:8080"  # Traefik dashboard

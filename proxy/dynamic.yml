@@ -49,6 +49,12 @@ http:
       entryPoints:
         - web
 
+    vpn-backend-internal:
+      rule: Host(`vpn-backend.internal`)
+      service: vpn-backend-internal
+      entryPoints:
+        - web
+
   services:
     # Service: defines backend server(s)
     home-internal:
@@ -85,3 +91,8 @@ http:
       loadBalancer:
         servers:
           - url: http://host.docker.internal:3110
+
+    vpn-backend-internal:
+      loadBalancer:
+        servers:
+          - url: http://192.168.0.30:3111

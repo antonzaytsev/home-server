@@ -22,6 +22,18 @@ providers:
     watch: true
 
 log:
-  level: INFO
+  level: DEBUG
 
-accessLog: {}
+accessLog:
+  format: json
+  fields:
+    defaultMode: keep
+    names:
+      ClientUsername: drop
+    headers:
+      defaultMode: keep
+      names:
+        User-Agent: keep
+        Authorization: drop
+        Content-Type: keep
+        X-Forwarded-For: keep

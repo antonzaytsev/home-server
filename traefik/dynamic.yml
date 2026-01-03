@@ -65,6 +65,12 @@ http:
       entryPoints:
         - web
 
+    keenetic-internal:
+      rule: Host(`keenetic.internal`)
+        service: keenetic-internal
+        entryPoints:
+          - web
+
   middlewares:
     redirect-to-http:
       redirectScheme:
@@ -112,3 +118,8 @@ http:
       loadBalancer:
         servers:
           - url: http://192.168.0.30:3111
+
+    keenetic-internal:
+      loadBalancer:
+        servers:
+          - url: http://192.168.0.1

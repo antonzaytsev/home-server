@@ -67,9 +67,9 @@ http:
 
     keenetic-internal:
       rule: Host(`keenetic.internal`)
-        service: keenetic-internal
-        entryPoints:
-          - web
+      service: keenetic-internal
+      entryPoints:
+        - web
 
   middlewares:
     redirect-to-http:

@@ -91,7 +91,7 @@ http:
     traefik-internal:
       loadBalancer:
         servers:
-          - url: http://host.docker.internal:8030
+          - url: http://192.168.0.30:8030
 
     dns-internal:
       loadBalancer:

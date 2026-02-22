@@ -96,6 +96,26 @@ body {
 }
 
 .gridItem { display: flex; }
+.dropPlaceholder {
+  width: 100%;
+  min-height: 170px;
+  border: 2px dashed var(--primary-light);
+  border-radius: 12px;
+  background: rgba(99, 102, 241, 0.08);
+  animation: placeholderIn .15s ease;
+}
+@keyframes placeholderIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.floatingDragItem {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  transform: rotate(1deg) scale(1.03);
+  filter: drop-shadow(0 16px 32px rgba(0,0,0,0.18));
+  will-change: left, top;
+}
 
 /* Card */
 .card {
@@ -129,7 +149,8 @@ body {
 .actionsRight { display: inline-flex; align-items: center; gap: 8px; }
 .iconButton { border: none; background: transparent; padding: 6px; border-radius: 6px; cursor: pointer; color: var(--text-secondary); }
 .iconButton:hover { color: var(--text); background: #f1f5f9; }
-.dragHandle { padding: 6px; color: var(--text-secondary); cursor: grab; }
+.dragHandle { padding: 8px; color: var(--text-secondary); cursor: grab; font-size: 22px; line-height: 1; user-select: none; touch-action: none; }
+.dragHandle:hover { color: var(--text); }
 .dragHandle:active { cursor: grabbing; }
 
 /* Modal */
@@ -144,5 +165,3 @@ body {
 .modalActions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
 
 .errorBanner { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
-
-

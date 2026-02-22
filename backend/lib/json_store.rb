@@ -108,15 +108,30 @@ class JsonStore
     @lock.synchronize do
       data = read_data
       services = data['services'] || []
-      
+
+      requested_order_by_id = {}
       service_orders.each do |order_data|
-        service = services.find { |s| s['id'] == order_data['id'] }
-        if service
-          service['display_order'] = order_data['display_order']
-          service['updated_at'] = Time.now.strftime('%Y-%m-%d %H:%M:%S')
+        next unless order_data.is_a?(Hash)
+        next unless order_data.key?('id')
+
+        requested_order_by_id[order_data['id'].to_i] = order_data['display_order'].to_i
+      end
+
+      now = Time.now.strftime('%Y-%m-%d %H:%M:%S')
+      sorted_services = services.sort_by do |service|
+        [
+          requested_order_by_id.fetch(service['id'], service['display_order'] || Float::INFINITY),
+          service['id']
+        ]
+      end
+
+      sorted_services.each_with_index do |service, index|
+        if service['display_order'] != index
+          service['display_order'] = index
+          service['updated_at'] = now
         end
       end
-      
+
       write_data(data)
     end
   end

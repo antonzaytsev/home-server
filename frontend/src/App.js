@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import ServiceList from './components/ServiceList';
 import ServiceModal from './components/ServiceModal';
@@ -17,10 +17,16 @@ const Icon = ({ children }) => <span style={{ display: 'inline-flex', alignItems
 
 function App() {
   const [services, setServices] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [error, setError] = useState(null);
   const [showServiceModal, setShowServiceModal] = useState(false);
   const [editingService, setEditingService] = useState(null);
+  const reorderRequestId = useRef(0);
+
+  const haveSameServiceOrder = (a, b) => {
+    if (!a || !b || a.length !== b.length) return false;
+    return a.every((service, index) => service.id === b[index].id);
+  };
 
   useEffect(() => {
     fetchServices();
@@ -28,7 +34,6 @@ function App() {
 
   const fetchServices = async () => {
     try {
-      setLoading(true);
       const response = await axios.get(`${API_BASE_URL}/services`);
       setServices(response.data);
       setError(null);
@@ -36,7 +41,7 @@ function App() {
       setError('Failed to fetch services');
       console.error('Error fetching services:', err);
     } finally {
-      setLoading(false);
+      setInitialLoad(false);
     }
   };
 
@@ -78,7 +83,36 @@ function App() {
     }
   };
 
-  // Drag-and-drop removed
+  const handleReorder = async ({ previousServices, nextServices }) => {
+    if (
+      !Array.isArray(previousServices) ||
+      !Array.isArray(nextServices) ||
+      haveSameServiceOrder(previousServices, nextServices)
+    ) {
+      return;
+    }
+
+    setServices(nextServices); // optimistic update
+    const requestId = ++reorderRequestId.current;
+
+    try {
+      const serviceOrders = nextServices.map((service, index) => ({
+        id: service.id,
+        display_order: index,
+      }));
+      await axios.put(`${API_BASE_URL}/services/reorder`, { services: serviceOrders });
+      setError(null);
+    } catch (err) {
+      if (requestId !== reorderRequestId.current) return;
+
+      setError('Failed to save order');
+      console.error('Error reordering services:', err);
+
+      setServices((currentServices) =>
+        haveSameServiceOrder(currentServices, nextServices) ? previousServices : currentServices
+      );
+    }
+  };
 
   const handleRefreshHealth = async (id) => {
     try {
@@ -89,7 +123,7 @@ function App() {
     }
   };
 
-  if (loading) {
+  if (initialLoad) {
     return (
       <div className="container" style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ color: 'var(--text-secondary)' }}>Loading services...</div>
@@ -120,9 +154,10 @@ function App() {
           onEdit={handleEditService}
           onDelete={handleDeleteService}
           onRefreshHealth={handleRefreshHealth}
+          onReorder={handleReorder}
         />
 
-        {services.length === 0 && !loading && (
+        {services.length === 0 && (
           <div style={{ textAlign: 'center', padding: '64px 24px', marginTop: 24, borderRadius: 12, background: 'var(--bg-paper)', border: '1px solid var(--border)' }}>
             <div style={{ fontSize: 96, marginBottom: 16, opacity: .8 }}>🖥️</div>
             <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--text)', marginBottom: 12 }}>No services yet</div>

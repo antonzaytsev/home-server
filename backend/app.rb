@@ -157,6 +157,21 @@ post '/api/services' do
   { id: service_id, message: 'Service created successfully' }.to_json
 end
 
+# PUT /api/services/reorder - Reorder services (must be before /:id to avoid route collision)
+put '/api/services/reorder' do
+  content_type :json
+  data = JSON.parse(request.body.read)
+  service_orders = data['services'] # Array of {id, display_order}
+  unless service_orders.is_a?(Array)
+    status 400
+    return({ error: 'Invalid payload: services must be an array' }.to_json)
+  end
+
+  store.reorder_services(service_orders)
+
+  { message: 'Services reordered successfully' }.to_json
+end
+
 # PUT /api/services/:id - Update service
 put '/api/services/:id' do
   content_type :json
@@ -191,17 +206,6 @@ delete '/api/services/:id' do
     status 404
     { error: 'Service not found' }.to_json
   end
-end
-
-# PUT /api/services/reorder - Reorder services
-put '/api/services/reorder' do
-  content_type :json
-  data = JSON.parse(request.body.read)
-  service_orders = data['services'] # Array of {id, display_order}
-
-  store.reorder_services(service_orders)
-
-  { message: 'Services reordered successfully' }.to_json
 end
 
 # GET /api/services/:id/health - Manual health check

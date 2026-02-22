@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 // Drag handle is provided by parent
 
-const ServiceItem = ({ service, onEdit, onDelete, onRefreshHealth }) => {
+const ServiceItem = ({ service, onEdit, onDelete, onRefreshHealth, onDragHandleMouseDown }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleEdit = () => {
@@ -84,20 +84,6 @@ const ServiceItem = ({ service, onEdit, onDelete, onRefreshHealth }) => {
     return 'No URL';
   };
 
-  const formatLastChecked = (timestamp) => {
-    if (!timestamp) return 'Never';
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
-    return date.toLocaleDateString();
-  };
-
-
   return (
     <>
       <div className="card">
@@ -113,6 +99,7 @@ const ServiceItem = ({ service, onEdit, onDelete, onRefreshHealth }) => {
                 {service.name}
               </div>
             </div>
+            <span className="dragHandle" title="Drag to reorder" onPointerDown={onDragHandleMouseDown}>⠿</span>
           </div>
 
           <div onClick={handleServiceClick} className="urlRow" title={getDisplayUrl()}>

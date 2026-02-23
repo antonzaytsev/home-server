@@ -1,3 +1,4 @@
 .env
 node_modules
 backend/db/services.json
+frontend/build

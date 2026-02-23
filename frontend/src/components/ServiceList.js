@@ -1,8 +1,9 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { Row, Col } from 'antd';
 import ServiceItem from './ServiceItem';
 
 const ServiceList = ({ services, onEdit, onDelete, onRefreshHealth, onReorder }) => {
-  const [drag, setDrag] = useState(null); // { dragIndex, overIndex, left, top, width }
+  const [drag, setDrag] = useState(null);
   const gridRef = useRef(null);
   const floatingRef = useRef(null);
   const dragDataRef = useRef(null);
@@ -17,8 +18,7 @@ const ServiceList = ({ services, onEdit, onDelete, onRefreshHealth, onReorder })
     if (!gridItem) return;
     const rect = gridItem.getBoundingClientRect();
 
-    // Snapshot all slot centers for stable hit-testing
-    const items = Array.from(gridRef.current.children);
+    const items = Array.from(gridRef.current.querySelectorAll('.gridItem'));
     const slotCenters = items.map(item => {
       const r = item.getBoundingClientRect();
       return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
@@ -90,7 +90,6 @@ const ServiceList = ({ services, onEdit, onDelete, onRefreshHealth, onReorder })
     document.addEventListener('pointerup', onUp);
   }, [services, onReorder]);
 
-  // Compute display order with dragged item at target position
   let displayItems = services;
   let draggedService = null;
   if (drag) {
@@ -103,11 +102,11 @@ const ServiceList = ({ services, onEdit, onDelete, onRefreshHealth, onReorder })
 
   return (
     <>
-      <div className="grid" ref={gridRef}>
+      <Row gutter={[24, 24]} ref={gridRef}>
         {displayItems.map((service) => {
           const isDragged = draggedService && service.id === draggedService.id;
           return (
-            <div key={service.id} className="gridItem">
+            <Col key={service.id} xs={24} md={12} lg={8} className="gridItem" style={{ display: 'flex' }}>
               {isDragged ? (
                 <div className="dropPlaceholder" />
               ) : (
@@ -119,16 +118,25 @@ const ServiceList = ({ services, onEdit, onDelete, onRefreshHealth, onReorder })
                   onDragHandleMouseDown={(e) => handleDragStart(e, service.id)}
                 />
               )}
-            </div>
+            </Col>
           );
         })}
-      </div>
+      </Row>
 
       {drag && draggedService && (
         <div
           ref={floatingRef}
-          className="floatingDragItem"
-          style={{ left: drag.left, top: drag.top, width: drag.width }}
+          style={{
+            position: 'fixed',
+            zIndex: 9999,
+            pointerEvents: 'none',
+            transform: 'rotate(1deg) scale(1.03)',
+            filter: 'drop-shadow(0 16px 32px rgba(0,0,0,0.18))',
+            willChange: 'left, top',
+            left: drag.left,
+            top: drag.top,
+            width: drag.width,
+          }}
         >
           <ServiceItem
             service={draggedService}

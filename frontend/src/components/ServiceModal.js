@@ -1,90 +1,70 @@
 import React, { useState, useEffect } from 'react';
+import { Modal, Form, Input } from 'antd';
 
-const ServiceModal = ({ show, onHide, onSubmit, service = null }) => {
+const ServiceModal = ({ open, onCancel, onSubmit, service = null }) => {
+  const [form] = Form.useForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({ name: '', url: '', health_check_url: '' });
-  const [validated, setValidated] = useState(false);
-  const [urlError, setUrlError] = useState('');
-  const [healthUrlError, setHealthUrlError] = useState('');
 
   const isEditing = service !== null;
 
   useEffect(() => {
-    if (service) {
-      let url = service.url;
-      if (!url && service.address) {
-        if (service.address.startsWith('http://') || service.address.startsWith('https://')) {
-          url = service.address;
-        } else {
-          url = `http://${service.address}${service.port ? `:${service.port}` : ''}`;
+    if (open) {
+      if (service) {
+        let url = service.url;
+        if (!url && service.address) {
+          if (service.address.startsWith('http://') || service.address.startsWith('https://')) {
+            url = service.address;
+          } else {
+            url = `http://${service.address}${service.port ? `:${service.port}` : ''}`;
+          }
         }
+        form.setFieldsValue({
+          name: service.name || '',
+          url: url || '',
+          health_check_url: service.health_check_url || '',
+        });
+      } else {
+        form.resetFields();
       }
-
-      setFormData({
-        name: service.name || '',
-        url: url || '',
-        health_check_url: service.health_check_url || ''
-      });
-    } else {
-      setFormData({ name: '', url: '', health_check_url: '' });
     }
-    setValidated(false);
-    setUrlError('');
-    setHealthUrlError('');
-  }, [service, show]);
+  }, [service, open, form]);
 
-  const validateUrl = (url, required = true) => {
-    if (!url) return required ? 'URL is required' : '';
+  const validateUrl = (_, value) => {
+    if (!value) return Promise.resolve();
     try {
-      let testUrl = url;
-      if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        testUrl = `http://${url}`;
+      let testUrl = value;
+      if (!value.startsWith('http://') && !value.startsWith('https://')) {
+        testUrl = `http://${value}`;
       }
       const urlObj = new URL(testUrl);
-      if (!urlObj.hostname) return 'Invalid URL format';
-      return '';
+      if (!urlObj.hostname) return Promise.reject('Invalid URL format');
+      return Promise.resolve();
     } catch {
-      return 'Invalid URL format';
+      return Promise.reject('Invalid URL format');
     }
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    const urlValidationError = validateUrl(formData.url, true);
-    const healthUrlValidationError = validateUrl(formData.health_check_url, false);
-    setUrlError(urlValidationError);
-    setHealthUrlError(healthUrlValidationError);
-
-    if (urlValidationError || healthUrlValidationError || !formData.name) {
-      setValidated(true);
-      return;
-    }
-
+  const handleFinish = async (values) => {
     setIsSubmitting(true);
     try {
-      let normalizedUrl = formData.url;
+      let normalizedUrl = values.url;
       if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
         normalizedUrl = `http://${normalizedUrl}`;
       }
-      let normalizedHealthUrl = formData.health_check_url;
+      let normalizedHealthUrl = values.health_check_url;
       if (normalizedHealthUrl && !normalizedHealthUrl.startsWith('http://') && !normalizedHealthUrl.startsWith('https://')) {
         normalizedHealthUrl = `http://${normalizedHealthUrl}`;
       }
 
       await onSubmit({
-        name: formData.name,
+        name: values.name,
         url: normalizedUrl,
         health_check_url: normalizedHealthUrl || null,
         address: null,
         port: null,
       });
 
-      setFormData({ name: '', url: '', health_check_url: '' });
-      setValidated(false);
-      setUrlError('');
-      setHealthUrlError('');
-      onHide();
+      form.resetFields();
     } catch (error) {
       console.error('Error submitting form:', error);
     } finally {
@@ -92,75 +72,67 @@ const ServiceModal = ({ show, onHide, onSubmit, service = null }) => {
     }
   };
 
-  const handleChange = (field) => (event) => {
-    const value = event.target.value;
-    setFormData({ ...formData, [field]: value });
-    if (field === 'url' && urlError) setUrlError('');
-    if (field === 'health_check_url' && healthUrlError) setHealthUrlError('');
+  const handleOk = () => {
+    form.submit();
   };
 
-  if (!show) return null;
-
   return (
-    <div className="modalOverlay" onClick={() => !isSubmitting && onHide()}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modalHeader">
-          <div className="modalTitle">{isEditing ? 'Edit Service' : 'Add New Service'}</div>
-          <button className="iconButton" onClick={() => !isSubmitting && onHide()}>✕</button>
-        </div>
+    <Modal
+      title={isEditing ? 'Edit Service' : 'Add New Service'}
+      open={open}
+      onCancel={() => !isSubmitting && onCancel()}
+      onOk={handleOk}
+      okText={isSubmitting ? 'Saving...' : isEditing ? 'Update Service' : 'Add Service'}
+      confirmLoading={isSubmitting}
+      destroyOnClose
+      maskClosable={!isSubmitting}
+      width={640}
+    >
+      <Form
+        form={form}
+        layout="vertical"
+        onFinish={handleFinish}
+        style={{ marginTop: 16 }}
+      >
+        <Form.Item
+          label="Service Name"
+          name="name"
+          rules={[{ required: true, message: 'Please enter a service name.' }]}
+        >
+          <Input
+            placeholder="e.g., Home Assistant, Plex Server, Router Admin"
+            disabled={isSubmitting}
+          />
+        </Form.Item>
 
-        <form onSubmit={handleSubmit}>
-          <div className="formRow">
-            <label>Service Name</label>
-            <input
-              className="input"
-              value={formData.name}
-              onChange={handleChange('name')}
-              disabled={isSubmitting}
-              required
-              placeholder="e.g., Home Assistant, Plex Server, Router Admin"
-            />
-            {validated && !formData.name && (
-              <div className="errorText">Please enter a service name.</div>
-            )}
-          </div>
+        <Form.Item
+          label="Service URL"
+          name="url"
+          rules={[
+            { required: true, message: 'URL is required.' },
+            { validator: validateUrl },
+          ]}
+          help="Enter the URL to open the service. Protocol (http://) will be added automatically if not specified."
+        >
+          <Input
+            placeholder="e.g., http://192.168.0.30:8123, https://plex.example.com"
+            disabled={isSubmitting}
+          />
+        </Form.Item>
 
-          <div className="formRow">
-            <label>Service URL</label>
-            <input
-              className="input"
-              value={formData.url}
-              onChange={handleChange('url')}
-              disabled={isSubmitting}
-              required
-              placeholder="e.g., http://192.168.0.30:8123, https://plex.example.com"
-            />
-            <div className="helper">
-              {urlError || 'Enter the URL to open the service. Protocol (http://) will be added automatically if not specified.'}
-            </div>
-          </div>
-
-          <div className="formRow">
-            <label>Health Check URL (Optional)</label>
-            <input
-              className="input"
-              value={formData.health_check_url}
-              onChange={handleChange('health_check_url')}
-              disabled={isSubmitting}
-              placeholder="e.g., http://192.168.0.30:8123/api/health"
-            />
-            <div className="helper">{healthUrlError || 'Optional separate URL for health checks. If empty, the service URL will be used for health monitoring.'}</div>
-          </div>
-
-          <div className="modalActions">
-            <button type="button" className="button" onClick={() => !isSubmitting && onHide()}>Cancel</button>
-            <button type="submit" className="button primary" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : isEditing ? 'Update Service' : 'Add Service'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        <Form.Item
+          label="Health Check URL (Optional)"
+          name="health_check_url"
+          rules={[{ validator: validateUrl }]}
+          help="Optional separate URL for health checks. If empty, the service URL will be used for health monitoring."
+        >
+          <Input
+            placeholder="e.g., http://192.168.0.30:8123/api/health"
+            disabled={isSubmitting}
+          />
+        </Form.Item>
+      </Form>
+    </Modal>
   );
 };
 

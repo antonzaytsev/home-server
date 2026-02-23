@@ -1,41 +1,38 @@
 import React, { useState } from 'react';
-// Drag handle is provided by parent
+import { Card, Tag, Avatar, Button, Modal, Typography, Tooltip } from 'antd';
+import {
+  EditOutlined,
+  DeleteOutlined,
+  ReloadOutlined,
+  LinkOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  ExclamationCircleOutlined,
+  HolderOutlined,
+} from '@ant-design/icons';
+
+const { Text } = Typography;
 
 const ServiceItem = ({ service, onEdit, onDelete, onRefreshHealth, onDragHandleMouseDown }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const handleEdit = () => {
-    onEdit(service);
-  };
+  const handleEdit = () => onEdit(service);
 
-  const handleDelete = () => {
-    setShowDeleteModal(true);
-  };
+  const handleDelete = () => setShowDeleteModal(true);
 
   const confirmDelete = () => {
     onDelete(service.id);
     setShowDeleteModal(false);
   };
 
-  const getStatusClass = (status) => {
+  const getStatusConfig = (status) => {
     switch (status) {
       case 'healthy':
-        return 'chip success';
+        return { color: 'success', icon: <CheckCircleOutlined />, text: 'Online' };
       case 'unhealthy':
-        return 'chip error';
+        return { color: 'error', icon: <CloseCircleOutlined />, text: 'Offline' };
       default:
-        return 'chip warning';
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'healthy':
-        return 'Online';
-      case 'unhealthy':
-        return 'Offline';
-      default:
-        return 'Unknown';
+        return { color: 'warning', icon: <ExclamationCircleOutlined />, text: 'Unknown' };
     }
   };
 
@@ -67,7 +64,6 @@ const ServiceItem = ({ service, onEdit, onDelete, onRefreshHealth, onDragHandleM
     } else {
       return;
     }
-
     window.open(url, '_blank');
   };
 
@@ -77,71 +73,108 @@ const ServiceItem = ({ service, onEdit, onDelete, onRefreshHealth, onDragHandleM
     } else if (service.address) {
       if (service.address.startsWith('http://') || service.address.startsWith('https://')) {
         return service.address.replace(/^https?:\/\//, '');
-      } else {
-        return `${service.address}${service.port ? `:${service.port}` : ''}`;
       }
+      return `${service.address}${service.port ? `:${service.port}` : ''}`;
     }
     return 'No URL';
   };
 
+  const statusConfig = getStatusConfig(service.status);
+
   return (
     <>
-      <div className="card">
-        <div className="cardContent">
-          <div className="header">
-            <div className="avatar">{getServiceIcon(service.name)}</div>
-            <div style={{ flexGrow: 1, minWidth: 0 }}>
-              <div
-                className="serviceName"
-                onClick={handleServiceClick}
-                title={service.name}
-              >
-                {service.name}
-              </div>
-            </div>
-            <span className="dragHandle" title="Drag to reorder" onPointerDown={onDragHandleMouseDown}>⠿</span>
+      <Card
+        style={{ width: '100%', display: 'flex', flexDirection: 'column' }}
+        styles={{ body: { padding: '20px 24px 12px', flex: 1 } }}
+        actions={[
+          <Tag
+            key="status"
+            icon={statusConfig.icon}
+            color={statusConfig.color}
+            style={{ margin: 0, cursor: 'default' }}
+          >
+            {statusConfig.text}
+          </Tag>,
+          <Tooltip title="Refresh health" key="refresh">
+            <Button
+              type="text"
+              size="small"
+              icon={<ReloadOutlined />}
+              onClick={() => onRefreshHealth(service.id)}
+            />
+          </Tooltip>,
+          <Tooltip title="Edit" key="edit">
+            <Button
+              type="text"
+              size="small"
+              icon={<EditOutlined style={{ color: '#1677ff' }} />}
+              onClick={handleEdit}
+            />
+          </Tooltip>,
+          <Tooltip title="Delete" key="delete">
+            <Button
+              type="text"
+              size="small"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={handleDelete}
+            />
+          </Tooltip>,
+        ]}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+          <Avatar
+            size={44}
+            style={{ backgroundColor: '#1677ff', marginRight: 16, fontSize: 20, flexShrink: 0 }}
+          >
+            {getServiceIcon(service.name)}
+          </Avatar>
+          <div style={{ flexGrow: 1, minWidth: 0 }}>
+            <Text
+              strong
+              style={{ fontSize: 18, color: '#1677ff', cursor: 'pointer', display: 'block' }}
+              ellipsis
+              onClick={handleServiceClick}
+            >
+              {service.name}
+            </Text>
           </div>
-
-          <div onClick={handleServiceClick} className="urlRow" title={getDisplayUrl()}>
-            <span style={{ fontSize: 16, marginRight: 6 }}>🔗</span>
-            <div className="urlText">{getDisplayUrl()}</div>
-          </div>
+          <Tooltip title="Drag to reorder">
+            <span
+              className="dragHandle"
+              onPointerDown={onDragHandleMouseDown}
+            >
+              <HolderOutlined style={{ fontSize: 20, color: '#bfbfbf' }} />
+            </span>
+          </Tooltip>
         </div>
 
-        <div className="cardActions">
-          <div className={getStatusClass(service.status)}>
-            <span style={{ fontSize: 14 }}>{service.status === 'healthy' ? '✔' : service.status === 'unhealthy' ? '✖' : '!'}</span>
-            {getStatusText(service.status)}
-          </div>
-
-          <div className="actionsRight">
-            <button className="iconButton" onClick={() => onRefreshHealth(service.id)} title="Refresh">⟲</button>
-            <button className="iconButton" onClick={handleEdit} title="Edit" style={{ color: 'var(--primary)' }}>✎</button>
-            <button className="iconButton" onClick={handleDelete} title="Delete" style={{ color: 'var(--error)' }}>🗑</button>
-          </div>
+        <div
+          onClick={handleServiceClick}
+          style={{ display: 'flex', alignItems: 'center', marginTop: 'auto', cursor: 'pointer', color: '#1677ff' }}
+        >
+          <LinkOutlined style={{ marginRight: 8 }} />
+          <Text
+            style={{ color: '#1677ff', fontWeight: 500 }}
+            ellipsis
+          >
+            {getDisplayUrl()}
+          </Text>
         </div>
-      </div>
+      </Card>
 
-      {showDeleteModal && (
-        <div className="modalOverlay" onClick={() => setShowDeleteModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modalHeader">
-              <div className="modalTitle">Delete Service</div>
-              <button className="iconButton" onClick={() => setShowDeleteModal(false)}>✕</button>
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              Are you sure you want to delete this service?
-              <div style={{ marginTop: 8, fontWeight: 700 }}>
-                This will permanently delete "{service.name}".
-              </div>
-            </div>
-            <div className="modalActions">
-              <button className="button" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-              <button className="button" style={{ background: 'var(--error)', color: '#fff', borderColor: 'var(--error)' }} onClick={confirmDelete}>Delete</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        title="Delete Service"
+        open={showDeleteModal}
+        onCancel={() => setShowDeleteModal(false)}
+        onOk={confirmDelete}
+        okText="Delete"
+        okType="danger"
+        cancelText="Cancel"
+      >
+        <p>Are you sure you want to delete this service?</p>
+        <p><strong>This will permanently delete "{service.name}".</strong></p>
+      </Modal>
     </>
   );
 };

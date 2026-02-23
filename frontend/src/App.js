@@ -144,7 +144,7 @@ function App() {
             paddingBottom: 16,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, maxWidth: 1200, width: '100%', margin: '0 auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, maxWidth: 1200, width: '100%', margin: '0 auto', padding: '0 24px' }}>
             <DesktopOutlined style={{ fontSize: 24, color: '#1677ff' }} />
             <Title level={3} style={{ margin: 0, marginRight: 'auto' }}>
               Сервисы <Badge count={services.length} />

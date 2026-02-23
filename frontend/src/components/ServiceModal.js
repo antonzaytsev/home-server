@@ -84,8 +84,8 @@ const ServiceModal = ({ open, onCancel, onSubmit, service = null }) => {
       onOk={handleOk}
       okText={isSubmitting ? 'Saving...' : isEditing ? 'Update Service' : 'Add Service'}
       confirmLoading={isSubmitting}
-      destroyOnClose
-      maskClosable={!isSubmitting}
+      destroyOnHidden
+      mask={{ closable: !isSubmitting }}
       width={640}
     >
       <Form

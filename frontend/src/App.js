@@ -122,7 +122,7 @@ function App() {
   if (initialLoad) {
     return (
       <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center' }}>
-        <Spin size="large" tip="Loading services..." />
+        <Spin size="large" description="Loading services..." />
       </div>
     );
   }

@@ -10,6 +10,7 @@ import {
   ExclamationCircleOutlined,
   HolderOutlined,
 } from '@ant-design/icons';
+import { getServiceIcon, getServiceUrl, getDisplayUrl } from '../utils/serviceUtils';
 
 const { Text } = Typography;
 
@@ -36,47 +37,9 @@ const ServiceItem = ({ service, onEdit, onDelete, onRefreshHealth, onDragHandleM
     }
   };
 
-  const getServiceIcon = (serviceName) => {
-    const name = serviceName.toLowerCase();
-    if (name.includes('home assistant') || name.includes('hass')) return '🏠';
-    if (name.includes('plex')) return '🎬';
-    if (name.includes('router') || name.includes('admin')) return '🌐';
-    if (name.includes('dns')) return '🌍';
-    if (name.includes('torrent') || name.includes('qbit')) return '⬇️';
-    if (name.includes('jellyfin')) return '🍿';
-    if (name.includes('cockpit')) return '⚙️';
-    if (name.includes('portainer')) return '🐳';
-    if (name.includes('calendar')) return '📅';
-    if (name.includes('trading') || name.includes('charts')) return '📈';
-    return '🖥️';
-  };
-
   const handleServiceClick = () => {
-    let url;
-    if (service.url) {
-      url = service.url;
-    } else if (service.address) {
-      if (service.address.startsWith('http://') || service.address.startsWith('https://')) {
-        url = service.address;
-      } else {
-        url = `http://${service.address}${service.port ? `:${service.port}` : ''}`;
-      }
-    } else {
-      return;
-    }
-    window.open(url, '_blank');
-  };
-
-  const getDisplayUrl = () => {
-    if (service.url) {
-      return service.url.replace(/^https?:\/\//, '');
-    } else if (service.address) {
-      if (service.address.startsWith('http://') || service.address.startsWith('https://')) {
-        return service.address.replace(/^https?:\/\//, '');
-      }
-      return `${service.address}${service.port ? `:${service.port}` : ''}`;
-    }
-    return 'No URL';
+    const url = getServiceUrl(service);
+    if (url) window.open(url, '_blank');
   };
 
   const statusConfig = getStatusConfig(service.status);
@@ -158,7 +121,7 @@ const ServiceItem = ({ service, onEdit, onDelete, onRefreshHealth, onDragHandleM
             style={{ color: '#1677ff', fontWeight: 500 }}
             ellipsis
           >
-            {getDisplayUrl()}
+            {getDisplayUrl(service)}
           </Text>
         </div>
       </Card>

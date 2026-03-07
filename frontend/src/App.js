@@ -4,6 +4,7 @@ import { Layout, Button, Badge, Alert, Spin, Empty, Typography, Space, ConfigPro
 import { PlusOutlined, ReloadOutlined, DesktopOutlined } from '@ant-design/icons';
 import ServiceList from './components/ServiceList';
 import ServiceModal from './components/ServiceModal';
+import QuickSearchModal from './components/QuickSearchModal';
 import './styles.css';
 
 const { Header, Content } = Layout;
@@ -18,8 +19,20 @@ function App() {
   const [initialLoad, setInitialLoad] = useState(true);
   const [error, setError] = useState(null);
   const [showServiceModal, setShowServiceModal] = useState(false);
+  const [showQuickSearch, setShowQuickSearch] = useState(false);
   const [editingService, setEditingService] = useState(null);
   const reorderRequestId = useRef(0);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowQuickSearch(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const haveSameServiceOrder = (a, b) => {
     if (!a || !b || a.length !== b.length) return false;
@@ -213,6 +226,12 @@ function App() {
             }}
             onSubmit={handleServiceSubmit}
             service={editingService}
+          />
+
+          <QuickSearchModal
+            open={showQuickSearch}
+            onClose={() => setShowQuickSearch(false)}
+            services={services}
           />
         </Content>
       </Layout>
